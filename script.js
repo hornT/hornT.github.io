@@ -1,20 +1,20 @@
-var parseFuncs = {
-	1: parseArray, // Массив
-	2: parseStruct, // Структура
+п»їvar parseFuncs = {
+	1: parseArray, // РњР°СЃСЃРёРІ
+	2: parseStruct, // РЎС‚СЂСѓРєС‚СѓСЂР°
 	// 3 bool
 	// 4 bit-string
-	5: parseInteger32,// Integer32 -2 147 483 648… 2 147 483 647
-	6: parseUnsigned32,// Unsigned32 0…4 294 967 295
-	9: parseString, // Строка
+	5: parseInteger32,// Integer32 -2 147 483 648вЂ¦ 2 147 483 647
+	6: parseUnsigned32,// Unsigned32 0вЂ¦4 294 967 295
+	9: parseString, // РЎС‚СЂРѕРєР°
 	// 10 visible-string An ordered sequence of ASCII characters
 	// 12 UTF8-string
 	// 13 binary coded decimal
-	15: parseInteger8,// Integer8 -128…127
-	16: parseInteger16,// Integer16 -32 768…32 767
-	17: parseUnsigned8, // Unsigned8 0…255
-	18: parseLongUnsigned, // Unsigned16  0…65 535
+	15: parseInteger8,// Integer8 -128вЂ¦127
+	16: parseInteger16,// Integer16 -32 768вЂ¦32 767
+	17: parseUnsigned8, // Unsigned8 0вЂ¦255
+	18: parseLongUnsigned, // Unsigned16  0вЂ¦65 535
 	// 19 compact array
-	20: parseInteger64,// Integer64 - 2^63 …2^63-1
+	20: parseInteger64,// Integer64 - 2^63 вЂ¦2^63-1
 	21: parseUnsigned64,// Unsigned64 0...2^64-1
 	// 22 enum
 	23: parseFloat32,// float32 SIZE(4)
@@ -44,13 +44,13 @@ function parse(s, e){
 	logNode.appendChild(fragment);
 }
 
-// Разбор массивов 01
+// Р Р°Р·Р±РѕСЂ РјР°СЃСЃРёРІРѕРІ 01
 function parseArray(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
 	
 	var size = parseInt(bytes[index + 1], 16);
-	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - Массив размером " + size;
+	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - РњР°СЃСЃРёРІ СЂР°Р·РјРµСЂРѕРј " + size;
 	
 	index += 2;
 	
@@ -60,13 +60,13 @@ function parseArray(element){
 	}
 }
 
-// Разбор структуры 02
+// Р Р°Р·Р±РѕСЂ СЃС‚СЂСѓРєС‚СѓСЂС‹ 02
 function parseStruct(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
 	
 	var size = parseInt(bytes[index + 1], 16);
-	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - Структура размером " + size;
+	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - РЎС‚СЂСѓРєС‚СѓСЂР° СЂР°Р·РјРµСЂРѕРј " + size;
 	
 	index += 2;
 	
@@ -76,7 +76,7 @@ function parseStruct(element){
 	}
 }
 
-// Разбор Integer32 05 (5)
+// Р Р°Р·Р±РѕСЂ Integer32 05 (5)
 function parseInteger32(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -85,7 +85,7 @@ function parseInteger32(element){
 	index += 5;
 }
 
-// Разбор Unsigned32 06 (6)
+// Р Р°Р·Р±РѕСЂ Unsigned32 06 (6)
 function parseUnsigned32(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -94,17 +94,17 @@ function parseUnsigned32(element){
 	index += 5;
 }
 
-// Разбор строки 09
+// Р Р°Р·Р±РѕСЂ СЃС‚СЂРѕРєРё 09
 function parseString(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
 	
 	var size = parseInt(bytes[index + 1], 16);
-	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - Строка размером " + size + ": " + bytes.slice(index + 2, index + size + 2).join('-');
+	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - РЎС‚СЂРѕРєР° СЂР°Р·РјРµСЂРѕРј " + size + ": " + bytes.slice(index + 2, index + size + 2).join('-');
 	index += 2 + size;
 }
 
-// Разбор Integer8 0F (15)
+// Р Р°Р·Р±РѕСЂ Integer8 0F (15)
 function parseInteger8(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -113,7 +113,7 @@ function parseInteger8(element){
 	index += 2;
 }
 
-// Разбор Integer16 10 (16)
+// Р Р°Р·Р±РѕСЂ Integer16 10 (16)
 function parseInteger16(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -122,7 +122,7 @@ function parseInteger16(element){
 	index += 3;
 }
 
-// Разбор Unsigned8 11 (17)
+// Р Р°Р·Р±РѕСЂ Unsigned8 11 (17)
 function parseUnsigned8(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -133,7 +133,7 @@ function parseUnsigned8(element){
 	index += 2;
 }
 
-// Разбор long_unsigned 12 (18)
+// Р Р°Р·Р±РѕСЂ long_unsigned 12 (18)
 function parseLongUnsigned(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -144,7 +144,7 @@ function parseLongUnsigned(element){
 	index += 3;
 }
 
-// Разбор Integer64 14 (20)
+// Р Р°Р·Р±РѕСЂ Integer64 14 (20)
 function parseInteger64(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -153,7 +153,7 @@ function parseInteger64(element){
 	index += 9;
 }
 
-// Разбор Unsigned64 15 (21)
+// Р Р°Р·Р±РѕСЂ Unsigned64 15 (21)
 function parseUnsigned64(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -162,7 +162,7 @@ function parseUnsigned64(element){
 	index += 9;
 }
 
-// Разбор float32 17 (23)
+// Р Р°Р·Р±РѕСЂ float32 17 (23)
 function parseFloat32(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -171,7 +171,7 @@ function parseFloat32(element){
 	index += 5;
 }
 
-// Разбор float64 18 (24)
+// Р Р°Р·Р±РѕСЂ float64 18 (24)
 function parseFloat64(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -180,7 +180,7 @@ function parseFloat64(element){
 	index += 9;
 }
 
-// Разбор date_time 19 (25)
+// Р Р°Р·Р±РѕСЂ date_time 19 (25)
 function parseDateTime(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -189,7 +189,7 @@ function parseDateTime(element){
 	index += 13;
 }
 
-// Разбор date 1A (26)
+// Р Р°Р·Р±РѕСЂ date 1A (26)
 function parseDate(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
@@ -198,7 +198,7 @@ function parseDate(element){
 	index += 6;
 }
 
-// Разбор time 1B (27)
+// Р Р°Р·Р±РѕСЂ time 1B (27)
 function parseTime(element){
 	var node = document.createElement('div');
 	element.appendChild(node);
