@@ -2,12 +2,15 @@
     <head >
         <meta http-equiv="Content-Type" content="text/html;" />
         <title>Разбор Dlms пакета</title>
-        <link href="style.css" rel="stylesheet" type="text/css" />
-		<script src="script.js" ></script>
+        <link href="css\style.css" rel="stylesheet" type="text/css" />
+		<script src="js\script.js" ></script>
     </head>
     <body>
-		<div style="width: 825; margin-left: auto; margin-right: auto;">
-			<textarea autofocus cols="100" rows="10" placeholder="Пакет..." onchange="parse(this, event);" ></textarea>
+		<div style="width: 825;" class="horizontal-middle">
+			<textarea id="dlmsPacket" cols="100" rows="10" placeholder="Пакет..." ></textarea>
+			<div style="width: 75;" class="horizontal-middle">
+				<button onclick="parse();">Разбор</button>
+			</div>
 		</div>
 		<div id="log"></div>
     </body>

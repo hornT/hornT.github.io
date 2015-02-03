@@ -12,7 +12,7 @@
 	15: parseInteger8,// Integer8 -128…127
 	16: parseInteger16,// Integer16 -32 768…32 767
 	17: parseUnsigned8, // Unsigned8 0…255
-	18: parseLongUnsigned, // Unsigned16  0…65 535
+	18: parseUnsigned16, // Unsigned16  0…65 535
 	// 19 compact array
 	20: parseInteger64,// Integer64 - 2^63 …2^63-1
 	21: parseUnsigned64,// Unsigned64 0...2^64-1
@@ -27,12 +27,35 @@
 var index = 0;
 var bytes = [];
 
-function parse(s, e){
-	var dataStr = s.value;
-	index = 0;
-	console.log(dataStr);
+function addLog(element, dataIndex, size, text){
+
+	var node = document.createElement('div');
+	element.appendChild(node);
+	var start = index;
+	node.innerHTML = bytes.slice(index, index + size + dataIndex).join('-') + " - " + text;
+	node.onclick = function(){ selectPacket(start, size + dataIndex); };
 	
-	bytes = dataStr.replace(/\s+/g, ' ').split(/[-_ ]/);
+	index += dataIndex + size;
+}
+
+// Выделение конкретного пакета
+function selectPacket(start, size){
+	
+	console.log('selectPacket. start: %s, size: %s', start, size);
+	document.getElementById('dlmsPacket').focus();
+    document.getElementById('dlmsPacket').setSelectionRange(start * 3, (start + size) * 3 - 1);
+}
+
+function parse(){
+	var dataStr = document.querySelector('#dlmsPacket').value;
+	index = 0;
+	//console.log(dataStr);
+	
+	dataStr = dataStr.replace(/\s+/g, ' ');
+	document.querySelector('#dlmsPacket').value = dataStr;
+	bytes = dataStr.split(/[-_ ]/);
+	console.log('bytes.length: %s', bytes.length);
+	
 	var type = parseInt(bytes[index], 16);
 	var fragment = document.createDocumentFragment();
 	parseFuncs[type](fragment);
@@ -78,131 +101,98 @@ function parseStruct(element){
 
 // Разбор Integer32 05 (5)
 function parseInteger32(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
 	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 4).join('-') + " - Integer32 = " + "";
-	index += 5;
+	var val = parseInt(bytes[index + 1], 16);
+	addLog(element, 1, 4, 'Integer32 = ' + val);
 }
 
 // Разбор Unsigned32 06 (6)
 function parseUnsigned32(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 4).join('-') + " - Unsigned32 = " + "";
-	index += 5;
+
+	var val = parseInt(bytes[index + 1], 16);
+	addLog(element, 1, 4, 'Unsigned32 = ' + val);
 }
 
 // Разбор строки 09
 function parseString(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
+
 	var size = parseInt(bytes[index + 1], 16);
-	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - Строка размером " + size + ": " + bytes.slice(index + 2, index + size + 2).join('-');
-	index += 2 + size;
+	addLog(element, 2, size, 'Строка');
 }
 
 // Разбор Integer8 0F (15)
 function parseInteger8(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index, index + 1).join('-') + " - Integer8 = " + "";
-	index += 2;
+
+	var val = parseInt(bytes[index + 1], 16);
+	addLog(element, 1, 1, 'Integer8 = ' + val);
 }
 
 // Разбор Integer16 10 (16)
 function parseInteger16(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 2).join('-') + " - Integer16 = " + "";
-	index += 3;
+
+	var val = parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 2, 'Integer16 = ' + val);
 }
 
 // Разбор Unsigned8 11 (17)
 function parseUnsigned8(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
 	
 	var val = parseInt(bytes[index + 1], 16);
-	node.innerHTML = bytes.slice(index, index + 2).join('-') + " - Unsigned8 = " + val;
-	
-	index += 2;
+	addLog(element, 1, 1, 'Unsigned8 = ' + val);
 }
 
 // Разбор long_unsigned 12 (18)
-function parseLongUnsigned(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	var val = parseInt(bytes[index + 1] + bytes[index + 2], 16);
-	node.innerHTML = bytes.slice(index, index + 3).join('-') + " - unsigned = " + val;
+function parseUnsigned16(element){
 
-	index += 3;
+	var val = parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 2, 'Unsigned16 = ' + val);
 }
 
 // Разбор Integer64 14 (20)
 function parseInteger64(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
 	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 8).join('-') + " - Integer64 = " + "";
-	index += 9;
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 8, 'Integer64 = ' + val);
 }
 
 // Разбор Unsigned64 15 (21)
 function parseUnsigned64(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 8).join('-') + " - Unsigned64 = " + "";
-	index += 9;
+
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 8, 'Unsigned64 = ' + val);
 }
 
 // Разбор float32 17 (23)
 function parseFloat32(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 4).join('-') + " - float32 = " + "";
-	index += 5;
+
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 4, 'Float32 = ' + val);
 }
 
 // Разбор float64 18 (24)
 function parseFloat64(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 8).join('-') + " - float64 = " + "";
-	index += 9;
+
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 8, 'Float64 = ' + val);
 }
 
 // Разбор date_time 19 (25)
 function parseDateTime(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 12).join('-') + " - DateTime = " + "";
-	index += 13;
+
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 12, 'DateTime = ' + val);
 }
 
 // Разбор date 1A (26)
 function parseDate(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 5).join('-') + " - Date = " + "";
-	index += 6;
+
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 5, 'Date = ' + val);
 }
 
 // Разбор time 1B (27)
 function parseTime(element){
-	var node = document.createElement('div');
-	element.appendChild(node);
-	
-	node.innerHTML = bytes.slice(index + 1, index + 1 + 4).join('-') + " - Time = " + "";
-	index += 5;
+
+	var val = 'hz'; //parseInt(bytes[index + 1] + bytes[index + 2], 16);
+	addLog(element, 1, 4, 'Time = ' + val);
 }
