@@ -14,7 +14,7 @@ gulp.task('default', ['build-js', 'minify-css']);
 //gulp.task('default', ['watch']);
 
 gulp.task('watch', function() {
-  gulp.watch('source/js/**/*.js', ['jshint']);
+  //gulp.watch('source/js/**/*.js', ['jshint']);
   gulp.watch('source/js/**/*.js', ['build-js']);
   gulp.watch('source/css/**/*.css', ['minify-css']);
 });
@@ -26,7 +26,7 @@ gulp.task('jshint', function() {
     .pipe(jshint.reporter('jshint-stylish'));
 });
 
-gulp.task('build-js', function() {
+gulp.task('build-js', ['jshint'], function() {
   return gulp.src('source/js/**/*.js')
     //.pipe(sourcemaps.init())
     .pipe(concat('script.js'))

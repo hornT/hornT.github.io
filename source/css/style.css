@@ -6,3 +6,26 @@
 	margin-left: auto;
 	margin-right: auto;
 }
+
+.packet{
+	width: 825;
+}
+
+.control{
+	margin-top: 6px;
+	width: 75;
+}
+
+.button{
+    color: #fff;
+    cursor: pointer;
+    display: table-cell;
+    height: 32px;
+	padding: 0 6px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.red{
+	background-color: red;
+}
