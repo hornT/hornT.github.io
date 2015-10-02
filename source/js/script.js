@@ -58,7 +58,7 @@ function parse(){
 	dataStr = dataStr.replace(/[-_ ]/g, '');
 	//dPacket.value = dataStr;
 	//data_bytes = dataStr.split(/[-_ ]/);
-	data_bytes = dPacket.match(/.{2}/g);
+	data_bytes = dataStr.match(/.{2}/g);
 	dPacket.value = data_bytes.join('-');
 	console.log('data_bytes.length: %s', data_bytes.length);
 	
