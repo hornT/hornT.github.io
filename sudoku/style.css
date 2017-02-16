@@ -1,0 +1,24 @@
+table{
+    border-collapse: collapse;
+    font-family: sans-serif;
+}
+table input{
+    width:20px;
+    height: 20px;
+}
+td{
+    border: 1px solid grey;
+    padding: 0;
+    color: #555;
+}
+.sudoku{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.btn-solve{
+    cursor: pointer;
+    height: 32px;
+    text-align: center;
+    vertical-align: middle;
+}

@@ -3,7 +3,30 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Решение судоку</title>
+        <link href="style.css" rel="stylesheet">
+        <script src="script.js" async=""></script>
     </head>
     <body>
+        <div id="main" class="sudoku">
+            <button class="btn-solve" onclick="Sudoku.Solve();">Решить</button>
+        </div>
     </body>
+
+    <script>
+        let table = document.createElement('table');
+        for(let i = 0; i < 9; i++){
+            let row = document.createElement('tr');
+            for(let j = 0; j < 9; j++){
+                let cell = document.createElement("td");
+                let input = document.createElement("input");
+                input.id = 'inp' + i + j;
+                cell.appendChild(input);
+                row.appendChild(cell);
+            }
+
+            table.appendChild(row);
+        }
+        const mainElement = document.querySelector('#main')
+        mainElement.insertBefore(table, mainElement.firstChild);
+    </script>
 </html>
