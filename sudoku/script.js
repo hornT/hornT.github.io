@@ -18,6 +18,7 @@ class SudokuCell{
             // User enter value
             this.num = val;
             this.isSolve = true;
+            this.inp.classList.add('user-num');
         }
     }
 
@@ -27,8 +28,16 @@ class SudokuCell{
         if(this.possibleValues.length === 1){
             this.num = this.possibleValues[0];
             this.isSolve = true;
-            document.querySelector('#inp' + this.row + this.column).value = this.num;
+            this.inp.value = this.num;
+            this.inp.classList.add('solved-num');
         }
+    }
+
+    FillNotResolved(){
+        if(this.isSolve === true){
+            return;
+        }
+        this.inp.value = this.possibleValues;
     }
 
     get IsSolve() {
@@ -104,6 +113,13 @@ var Sudoku = (function() {
         solvedCells.forEach(function(element) {
             excludeNumbers(element);
         });
+
+        // Fill not resolved
+        for(let i = 0; i < 9; i++){
+            for(let j = 0; j < 9; j++){
+                mainArray[i][j].FillNotResolved();
+            }
+        }
     }
 
     return{

@@ -3,8 +3,8 @@ table{
     font-family: sans-serif;
 }
 table input{
-    width:20px;
-    height: 20px;
+    width: 60px;
+    height: 60px;
 }
 td{
     border: 1px solid grey;
@@ -21,4 +21,10 @@ td{
     height: 32px;
     text-align: center;
     vertical-align: middle;
+}
+.user-num{
+    color: green;
+}
+.solved-num{
+    color: red;
 }
