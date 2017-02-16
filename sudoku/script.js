@@ -76,11 +76,20 @@ var Sudoku = (function() {
         for(let i = 0; i < 9; i++){
             excludeNumberFromCell(mainArray[cell.Row][i], cell.Num);
         }
+
         // Exclude by column
         for(let i = 0; i < 9; i++){
             excludeNumberFromCell(mainArray[i][cell.Column], cell.Num);
         }
+
         // Exclude by block
+        const row = Math.floor(cell.Row / 3) * 3;
+        const column = Math.floor(cell.Column / 3) * 3;
+        for(let i = 0; i < 3; i++){
+            for(let j = 0; j < 3; j++){
+                excludeNumberFromCell(mainArray[row + i][column + j], cell.Num);
+            }
+        }
     }
 
     function excludeNumberFromCell(currCell, num){
