@@ -7,8 +7,6 @@ class SudokuCell{
         this.inp = document.querySelector('#inp' + i + j);
         const val = parseInt(this.inp.value);
 
-        console.debug('i: %s, j: %s, val: %s', i, j, val);
-
         if(isNaN(val)){
             // Empty cell
             this.isSolve = false;
@@ -26,11 +24,14 @@ class SudokuCell{
         this.possibleValues = this.possibleValues.filter(function(val){ return val !== num});
 
         if(this.possibleValues.length === 1){
-            this.num = this.possibleValues[0];
-            this.isSolve = true;
-            this.inp.value = this.num;
-            this.inp.classList.add('solved-num');
+            this.SetNum(this.possibleValues[0]);
         }
+    }
+
+    SetNum(num){
+        this.inp.value = this.num = num;
+        this.isSolve = true;
+        this.inp.classList.add('solved-num');
     }
 
     FillNotResolved(){
@@ -54,6 +55,10 @@ class SudokuCell{
 
     get Column() {
         return this.column;
+    }
+
+    get PossibleValues(){
+        return this.possibleValues;
     }
 }
 
@@ -103,6 +108,68 @@ var Sudoku = (function() {
         }
     }
 
+    function checkLastHeroUniqueByRow(value, row, column){
+        for(let i = 0; i < 9; i++){
+            if(column === i){
+                continue;
+            }
+
+            let checkCell = mainArray[row][i];
+            if(checkCell.IsSolve === true){
+                continue;
+            }
+
+            if(checkCell.PossibleValues.includes(value) === true){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function checkLastHeroUniqueByColumn(value, row, column){
+        for(let i = 0; i < 9; i++){
+            if(row === i){
+                continue;
+            }
+
+            let checkCell = mainArray[i][column];
+            if(checkCell.IsSolve === true){
+                continue;
+            }
+
+            if(checkCell.PossibleValues.includes(value) === true){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function checkLastHeroUniqueByBlock(value, row, column){
+        return false;
+    }
+
+    function setLastHeroes(){
+        for(let i = 0; i < 9; i++){
+            for(let j = 0; j < 9; j++){
+                const checkCell = mainArray[i][j];
+                if(checkCell.isSolve === true){
+                    continue;
+                }
+
+                const res = checkCell.PossibleValues.some(function(val, index, array){
+                    const valExists = checkLastHeroUniqueByRow(val, i, j) || checkLastHeroUniqueByColumn(val, i, j) || checkLastHeroUniqueByBlock(val, i, j);
+                    if(valExists === true){
+                        checkCell.SetNum(val);
+                        excludeNumbers(checkCell);
+                    }
+                    return valExists;
+                });
+            }
+        }
+    }
+
     // Solve sudoku
     function solve(){
 
@@ -117,11 +184,13 @@ var Sudoku = (function() {
                 }
             }
         }
-        console.debug('solvedCells: %s', solvedCells.length);
+        //console.debug('solvedCells: %s', solvedCells.length);
 
         solvedCells.forEach(function(element) {
             excludeNumbers(element);
         });
+
+        setLastHeroes();
 
         // Fill not resolved
         for(let i = 0; i < 9; i++){
