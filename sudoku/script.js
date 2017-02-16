@@ -95,6 +95,8 @@ var Sudoku = (function() {
                 excludeNumberFromCell(mainArray[row + i][column + j], cell.Num);
             }
         }
+
+        //setLastHeroes();
     }
 
     function excludeNumberFromCell(currCell, num){
@@ -147,10 +149,33 @@ var Sudoku = (function() {
     }
 
     function checkLastHeroUniqueByBlock(value, row, column){
-        return false;
+        const beginRow = Math.floor(row / 3) * 3;
+        const beginColumn = Math.floor(column / 3) * 3;
+
+        for(let i = 0; i < 3; i++){
+            let currRow = beginRow + i;
+            for(let j = 0; j < 3; j++){
+                let currColumn = beginColumn + j;
+                if(row === currRow && column === currColumn){
+                    continue;
+                }
+                
+                let checkCell = mainArray[currRow][currColumn];
+                if(checkCell.IsSolve === true){
+                    continue;
+                }
+
+                if(checkCell.PossibleValues.includes(value) === true){
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     function setLastHeroes(){
+        let isSetValueExists = false;
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
                 const checkCell = mainArray[i][j];
@@ -166,8 +191,12 @@ var Sudoku = (function() {
                     }
                     return valExists;
                 });
+
+                isSetValueExists = isSetValueExists || res;
             }
         }
+
+        return isSetValueExists;
     }
 
     // Solve sudoku
@@ -190,7 +219,10 @@ var Sudoku = (function() {
             excludeNumbers(element);
         });
 
-        setLastHeroes();
+        let res = true;
+        while(res === true){
+            res = setLastHeroes();
+        }
 
         // Fill not resolved
         for(let i = 0; i < 9; i++){
