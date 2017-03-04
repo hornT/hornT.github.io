@@ -21,6 +21,10 @@ class SudokuCell{
     }
 
     Exclude(num){
+        if(this.isSolve === true){
+            return false;
+        }
+
 		const result = this.possibleValues.includes(num);
         this.possibleValues = this.possibleValues.filter(function(val){ return val !== num});
 
@@ -28,14 +32,25 @@ class SudokuCell{
             this.SetNum(this.possibleValues[0]);
         }
 
+        this.FillNotResolved();
+
 		return result;
     }
 
     SetNum(num){
+        if(num === 2 && this.row === 1 && this.column === 2){
+            debugger;
+        }
+        if(num === 2 && this.row === 1 && this.column === 0){
+            debugger;
+        }
+        if(num === 2 && this.row === 2 && this.column === 1){
+            debugger;
+        }
         this.inp.value = this.num = num;
         this.isSolve = true;
         this.inp.classList.add('solved-num');
-		console.debug('setnum. row: %s, column: %s, num: %s', this.row, this.column, num);
+		console.debug('setnum %s row: %s, column: %s', num, this.row, this.column);
     }
 
     FillNotResolved(){
@@ -186,6 +201,7 @@ var Sudoku = (function() {
     }
 
     function setLastHeroes(){
+
         let isSetValueExists = false;
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
@@ -210,14 +226,73 @@ var Sudoku = (function() {
         return isSetValueExists;
     }
 
+	function excludeNumbersFromBlocksByLine(){
+		let result = false;
+
+		for(let i = 0; i < 3; i++){
+			for(let j = 0; j < 3; j++){
+                // ячейки внутри блока
+                let cells = mainArray
+                            .slice(i * 3, (i + 1) * 3)
+                            .reduce(function(prev, curr){ return [...prev, ...curr.slice(j * 3, (j + 1) * 3)] }, [])
+                            .filter(function(cell){ return cell.IsSolve == false; });
+				
+				result = processNumbersInBlock(cells, i, j) || result;
+			}
+		}
+
+		return result;
+	}
+
+    function processNumbersInBlock(cells, blockRow, blockColumn){
+        let result = false;
+
+        for(let i = 1; i <= 9; i++){
+            // Ячейки, содержащие проверочное число
+			let currCells = cells.filter(function(cell){
+				return cell.PossibleValues.includes(i) === true;
+			});
+			// Если ячейки на одной строке\колонке, то исключем все остальные в этой строке других блоков
+			if(currCells.length < 2){ // для 1 и менее ячеек нет смысла проверки
+				continue;
+			}
+
+            const row = currCells[0].Row;
+            const column = currCells[0].Column;
+
+            const isRowLine = currCells.every(function(cell){ return cell.Row === row; });
+            const isColumnLine = currCells.every(function(cell){ return cell.Column === column; });
+
+            if(isRowLine === true){
+                console.debug('exclude %s by row %s', i, row);
+                mainArray[row]
+                    .filter(function(cell, ind){ return ind < blockColumn * 3 || ind >= (blockColumn + 1) * 3 })
+                    .forEach(function(cell){ result = cell.Exclude(i) || result; });
+            }
+
+            if(isColumnLine === true){
+                console.debug('exclude %s by column %s', i, column);
+                mainArray
+                    .filter(function(cell, ind){ return ind < blockRow * 3 || ind >= (blockRow + 1) * 3 })
+                    .forEach(function(arr){ result = arr[column].Exclude(i) || result; });
+            }
+        }
+
+        return result;
+    }
+
 	// Исключаем все повторения
 	function excludeAllNumbers(){
 		let res = false;
+		// Исключаем для каждой ячейки
 		for(let i = 0; i < 9; i++){
-				for(let j = 0; j < 9; j++){
-					res = excludeNumbers(mainArray[i][j]) || res;
-				}
+			for(let j = 0; j < 9; j++){
+				res = excludeNumbers(mainArray[i][j]) || res;
 			}
+		}
+
+		// Исключаем внутри блоков - если внутри блока все доступные двойки строятся в 1 линию, то в этой линии исключаем все двойки внутри других блоков
+		res = excludeNumbersFromBlocksByLine() || res;
 
 		return res;
 	}
@@ -225,28 +300,19 @@ var Sudoku = (function() {
     // Решаем
     function solve(){
 
-        const solvedCells = [];
         // Заполняем массив решений значениями пользователя
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
                 const cell = new SudokuCell(i, j);
                 mainArray[i][j] = cell;
-                if(cell.IsSolve === true){
-                    solvedCells.push(cell);
-                }
+                mainArray[i][j].FillNotResolved();
             }
         }
 
         let res = true;
         while(res === true){
-			//res = false;
 			// Исключить повторения
 			res = excludeAllNumbers();
-			// for(let i = 0; i < 9; i++){
-				// for(let j = 0; j < 9; j++){
-					// res = excludeNumbers(mainArray[i][j]) || res;
-				// }
-			// }
 			// Установить "последнего героя"(остается единственный в строке, колонке, группе)
             res = setLastHeroes() || res;
         }
