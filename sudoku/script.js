@@ -20,6 +20,10 @@ class SudokuCell{
         }
     }
 
+    /**
+     * Исключить из возможных вариантов данное число
+     * @param {Number} num 
+     */
     Exclude(num){
         if(this.isSolve === true){
             return false;
@@ -38,36 +42,59 @@ class SudokuCell{
 		return result;
     }
 
+    /**
+     * Установить данное число в качестве решения
+     * @param {Number} num 
+     */
     SetNum(num){
         this.inp.value = this.num = num;
         this.isSolve = true;
         this.inp.classList.add('solved-num');
+
 		console.debug('setnum %s row: %s, column: %s', num, this.row, this.column);
     }
 
+    /**
+     * Заполнить ячейку возможными значениями
+     */
     FillNotResolved(){
-        if(this.isSolve === true){
-            return;
-        }
+        // if(this.isSolve === true){
+        //     return;
+        // }
         this.inp.value = this.possibleValues;
     }
 
+    /**
+     * Решена ли ячейка
+     */
     get IsSolve() {
         return this.isSolve;
     }
 
+    /**
+     * Число в ячейке
+     */
     get Num() {
         return this.num;
     }
 
+    /**
+     * Строка, на которой располагается ячейка
+     */
     get Row() {
         return this.row;
     }
 
+    /**
+     * Колонка, на которой располагается ячейка
+     */
     get Column() {
         return this.column;
     }
 
+    /**
+     * Возможные решения
+     */
     get PossibleValues(){
         return this.possibleValues;
     }
@@ -93,40 +120,12 @@ var Sudoku = (function() {
 		}
 
 		let result = false;
-        // Исключаем по строке
-        for(let i = 0; i < 9; i++){
-            result = excludeNumberFromCell(mainArray[cell.Row][i], cell.Num) || result;
-        }
-
-        // Исключаем по колонке
-        for(let i = 0; i < 9; i++){
-            result = excludeNumberFromCell(mainArray[i][cell.Column], cell.Num) || result;
-        }
-
-        // Исключаем внутри блока
-        const row = Math.floor(cell.Row / 3) * 3;
-        const column = Math.floor(cell.Column / 3) * 3;
-        for(let i = 0; i < 3; i++){
-            for(let j = 0; j < 3; j++){
-                result = excludeNumberFromCell(mainArray[row + i][column + j], cell.Num) || result;
-            }
-        }
-
-		return result;
-    }
-
-    function excludeNumberFromCell(currCell, num){
-        if(currCell.IsSolve === true){
-            return false;
-        }
         
-        const result = currCell.Exclude(num);
-        if(currCell.IsSolve === true){
-            excludeNumbers(currCell);
-        }
 
 		return result;
     }
+
+    
 
     function checkLastHeroUniqueByRow(value, row, column){
         for(let i = 0; i < 9; i++){
@@ -348,6 +347,11 @@ var Sudoku = (function() {
 		return res;
 	}
 
+    
+
+
+
+    const allCells = [];
     // Решаем
     function solve(){
 
@@ -355,31 +359,90 @@ var Sudoku = (function() {
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
                 const cell = new SudokuCell(i, j);
-                mainArray[i][j] = cell;
-                mainArray[i][j].FillNotResolved();
+                allCells.push(cell);
             }
         }
 
         let res = true;
         while(res === true){
-			// Исключить повторения
-			res = excludeAllNumbers();
-			// Установить "последнего героя"(остается единственный в строке, колонке, группе)
-            res = setLastHeroes() || res;
+
+            // Исключить самые простые
+            res = excludeSimple();
+			// // Исключить повторения
+			// res = excludeAllNumbers();
+			// // Установить "последнего героя"(остается единственный в строке, колонке, группе)
+            // res = setLastHeroes() || res;
         }
 
-        //excludeHiddenPairsTriples(mainArray[0][6], 2);
-        let c = mainArray[0][1];
-        excludeHiddenPairsTriplesFromCells(mainArray.map(function(arr){
-            return arr[c.Column];
-        }), c, 2, 
-        function(cell){ return cell.Row; });
-        // Заполнить нерешенные ячейки для дальнейшего анализа
-        for(let i = 0; i < 9; i++){
-            for(let j = 0; j < 9; j++){
-                mainArray[i][j].FillNotResolved();
-            }
+        // //excludeHiddenPairsTriples(mainArray[0][6], 2);
+        // let c = mainArray[0][1];
+        // excludeHiddenPairsTriplesFromCells(mainArray.map(function(arr){
+        //     return arr[c.Column];
+        // }), c, 2, 
+        // function(cell){ return cell.Row; });
+
+        // // Заполнить нерешенные ячейки для дальнейшего анализа
+        allCells
+            .filter(c => c.IsSolve === false)
+            .forEach(c => c.FillNotResolved());
+    }
+
+    /**
+     * Исключить самые простые варианты
+     */
+    function excludeSimple(){
+        let res = false;
+
+        allCells
+            .filter(c => c.IsSolve === true)
+            .forEach(c => res = excludeSimpleCell(c) || res);
+
+        return res;
+    }
+
+    /**
+     * Исключить для данной ячейки, если она решена, все совпадения по строке, столбцу и блоку
+     * @param {SudokuCell} cell 
+     */
+    function excludeSimpleCell(cell){
+        let res = false;
+
+        const row = Math.floor(cell.Row / 3) * 3;
+        const column = Math.floor(cell.Column / 3) * 3;
+
+        allCells
+            .filter(c => c.IsSolve === false &&
+                (
+                    c.Row === cell.Row ||       // Все по строке
+                    c.Column === cell.Column || // Все по колонке
+                    (
+                        // Все внутри блока
+                        c.Column >= column * 3 && c.Column < (column + 1) * 3 &&
+                        c.Row >= row * 3 && c.Row < (row + 1) * 3
+                    )
+                )
+            )
+            .forEach(c => res = excludeNumberFromCell(c, cell.Num) || res);
+
+        return res;
+    }
+
+    /**
+     * Исключить из указанной ячейки заданное число
+     * @param {SudokuCell} checkCell 
+     * @param {Number} num 
+     */
+    function excludeNumberFromCell(checkCell, num){
+        if(checkCell.IsSolve === true){
+            return false;
         }
+        
+        const result = checkCell.Exclude(num);
+        if(checkCell.IsSolve === true){
+            excludeSimpleCell(checkCell);
+        }
+
+		return result;
     }
 
     return{
