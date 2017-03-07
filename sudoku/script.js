@@ -101,121 +101,7 @@ class SudokuCell{
 }
 
 var Sudoku = (function() {
-
-    const mainArray = [
-            [], // 1
-            [], // 2
-            [], // 3
-            [], // 4
-            [], // 5
-            [], // 6
-            [], // 7
-            [], // 8
-            [], // 9
-        ];
-
-    function excludeNumbers(cell){
-		if(!cell.Num){
-			return false;
-		}
-
-		let result = false;
-        
-
-		return result;
-    }
-
-    
-
-    function checkLastHeroUniqueByRow(value, row, column){
-        for(let i = 0; i < 9; i++){
-            if(column === i){
-                continue;
-            }
-
-            let checkCell = mainArray[row][i];
-            if(checkCell.IsSolve === true){
-                continue;
-            }
-
-            if(checkCell.PossibleValues.includes(value) === true){
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    function checkLastHeroUniqueByColumn(value, row, column){
-        for(let i = 0; i < 9; i++){
-            if(row === i){
-                continue;
-            }
-
-            let checkCell = mainArray[i][column];
-            if(checkCell.IsSolve === true){
-                continue;
-            }
-
-            if(checkCell.PossibleValues.includes(value) === true){
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    function checkLastHeroUniqueByBlock(value, row, column){
-        const beginRow = Math.floor(row / 3) * 3;
-        const beginColumn = Math.floor(column / 3) * 3;
-
-        for(let i = 0; i < 3; i++){
-            let currRow = beginRow + i;
-            for(let j = 0; j < 3; j++){
-                let currColumn = beginColumn + j;
-                if(row === currRow && column === currColumn){
-                    continue;
-                }
-                
-                let checkCell = mainArray[currRow][currColumn];
-                if(checkCell.IsSolve === true){
-                    continue;
-                }
-
-                if(checkCell.PossibleValues.includes(value) === true){
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    function setLastHeroes(){
-
-        let isSetValueExists = false;
-        for(let i = 0; i < 9; i++){
-            for(let j = 0; j < 9; j++){
-                const checkCell = mainArray[i][j];
-                if(checkCell.isSolve === true){
-                    continue;
-                }
-
-                const res = checkCell.PossibleValues.some(function(val, index, array){
-                    const valExists = checkLastHeroUniqueByRow(val, i, j) || checkLastHeroUniqueByColumn(val, i, j) || checkLastHeroUniqueByBlock(val, i, j);
-                    if(valExists === true){
-                        checkCell.SetNum(val);
-						isSetValueExists = excludeNumbers(checkCell) || isSetValueExists;
-                    }
-                    return valExists;
-                });
-
-                isSetValueExists = isSetValueExists || res;
-            }
-        }
-
-        return isSetValueExists;
-    }
+  
 
 	function excludeNumbersFromBlocksByLine(){
 		let result = false;
@@ -363,25 +249,20 @@ var Sudoku = (function() {
             }
         }
 
+        allCells
+            .filter(c => c.IsSolve === true)
+            .forEach(c => excludeSimpleCell(c));
+
         let res = true;
         while(res === true){
 
             // Исключить самые простые
-            res = excludeSimple();
-			// // Исключить повторения
-			// res = excludeAllNumbers();
-			// // Установить "последнего героя"(остается единственный в строке, колонке, группе)
-            // res = setLastHeroes() || res;
+            res = excludeSimple() ||
+            // Установить "последнего героя"(остается единственный в строке, колонке, группе)
+            setLastHeroes();
         }
 
-        // //excludeHiddenPairsTriples(mainArray[0][6], 2);
-        // let c = mainArray[0][1];
-        // excludeHiddenPairsTriplesFromCells(mainArray.map(function(arr){
-        //     return arr[c.Column];
-        // }), c, 2, 
-        // function(cell){ return cell.Row; });
-
-        // // Заполнить нерешенные ячейки для дальнейшего анализа
+        // Заполнить нерешенные ячейки для дальнейшего анализа
         allCells
             .filter(c => c.IsSolve === false)
             .forEach(c => c.FillNotResolved());
@@ -417,8 +298,8 @@ var Sudoku = (function() {
                     c.Column === cell.Column || // Все по колонке
                     (
                         // Все внутри блока
-                        c.Column >= column * 3 && c.Column < (column + 1) * 3 &&
-                        c.Row >= row * 3 && c.Row < (row + 1) * 3
+                        c.Column >= column && c.Column < column + 3 &&
+                        c.Row >= row && c.Row < row + 3 
                     )
                 )
             )
@@ -443,6 +324,38 @@ var Sudoku = (function() {
         }
 
 		return result;
+    }
+
+    /**
+     * Установить поледнего героя (остается единственный в строке, колонке, группе)
+     */
+    function setLastHeroes(){
+        const processCells = allCells.filter(c => c.IsSolve === false);
+
+        for(let num = 1; num <= 9; num++){
+            // Ищем все числа от 1 до 9 в единственном экземпляре по колонке\строке
+            let numCells = processCells.filter(c =>c.PossibleValues.includes(num));
+            for(let i = 0; i < 9; i ++)
+            {
+                let rowCells = numCells.filter(c => c.Row === i);
+                if(rowCells.length === 1){
+                    // Нашли по строке
+                    rowCells[0].SetNum(num);
+                    return true;
+                }
+
+                let colCells = numCells.filter(c => c.Column === i);
+                if(colCells.length === 1){
+                    // Нашли по столбцу
+                    colCells[0].SetNum(num);
+                    return true;
+                }
+            }
+
+            // TODO поиск по блоку
+        }
+
+        return false;
     }
 
     return{
