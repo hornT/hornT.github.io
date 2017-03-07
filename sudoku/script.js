@@ -32,21 +32,13 @@ class SudokuCell{
             this.SetNum(this.possibleValues[0]);
         }
 
+        // TODO for test
         this.FillNotResolved();
 
 		return result;
     }
 
     SetNum(num){
-        if(num === 2 && this.row === 1 && this.column === 2){
-            debugger;
-        }
-        if(num === 2 && this.row === 1 && this.column === 0){
-            debugger;
-        }
-        if(num === 2 && this.row === 2 && this.column === 1){
-            debugger;
-        }
         this.inp.value = this.num = num;
         this.isSolve = true;
         this.inp.classList.add('solved-num');
@@ -281,6 +273,53 @@ var Sudoku = (function() {
         return result;
     }
 
+    function excludeHiddenPairsTriples(cell, ln){
+        if(cell.PossibleValues.length !== ln){
+            return false;
+        }
+
+        let result = false;
+
+        //console.debug('поиск скрытых пар\троек(%s) для (%s, %s): %s', ln, cell.Row, cell.Column, cell.PossibleValues);
+
+        // Поиск в строке
+        result = excludeHiddenPairsTriplesFromCells(mainArray[cell.Row], cell, ln, function(cell){ return cell.Column; }) || result;
+
+        // Поиск в столбце
+        //excludeHiddenPairsTriplesFromColumn(cell, ln);
+        // result = excludeHiddenPairsTriplesFromCells(mainArray.map(function(arr){
+        //     return arr[cell.Column];
+        // }), cell, ln, 
+        // function(cell){ return cell.Row; }) || result;
+        // Поиск в блоке
+        
+        return result;
+    }
+
+    function excludeHiddenPairsTriplesFromCells(cells, checkCell, ln, checkFn){
+        let result = false;
+
+        const hiddenCells = cells.filter(function(val){
+            return val.IsSolve == false
+                    && val.PossibleValues.length > 1
+                    && val.PossibleValues.length <= checkCell.PossibleValues.length
+                    && val.PossibleValues.every(function(v) { return checkCell.PossibleValues.includes(v); })
+        });
+
+        if(hiddenCells.length === ln){
+            const excludeColumns = hiddenCells.map(checkFn);
+            cells
+            .filter(function(val){
+                return val.IsSolve === false && excludeColumns.includes(checkFn(val)) === false;
+            })
+            .forEach(function(val){
+                checkCell.PossibleValues.forEach(function(num){ result = val.Exclude(num) || result; });
+            });
+        }
+
+        return result;
+    }
+
 	// Исключаем все повторения
 	function excludeAllNumbers(){
 		let res = false;
@@ -293,6 +332,18 @@ var Sudoku = (function() {
 
 		// Исключаем внутри блоков - если внутри блока все доступные двойки строятся в 1 линию, то в этой линии исключаем все двойки внутри других блоков
 		res = excludeNumbersFromBlocksByLine() || res;
+
+        // Ищем скрытые пары\тройки
+		for(let i = 0; i < 9; i++){
+			for(let j = 0; j < 9; j++){
+                if(mainArray[i][j].IsSolve === true){
+                    continue;
+                }
+
+				res = excludeHiddenPairsTriples(mainArray[i][j], 2) || res;
+                res = excludeHiddenPairsTriples(mainArray[i][j], 3) || res;
+			}
+		}
 
 		return res;
 	}
@@ -317,6 +368,12 @@ var Sudoku = (function() {
             res = setLastHeroes() || res;
         }
 
+        //excludeHiddenPairsTriples(mainArray[0][6], 2);
+        let c = mainArray[0][1];
+        excludeHiddenPairsTriplesFromCells(mainArray.map(function(arr){
+            return arr[c.Column];
+        }), c, 2, 
+        function(cell){ return cell.Row; });
         // Заполнить нерешенные ячейки для дальнейшего анализа
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
