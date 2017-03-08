@@ -36,9 +36,6 @@ class SudokuCell{
             this.SetNum(this.possibleValues[0]);
         }
 
-        // TODO for test
-        this.FillNotResolved();
-
 		return result;
     }
 
@@ -50,17 +47,12 @@ class SudokuCell{
         this.inp.value = this.num = num;
         this.isSolve = true;
         this.inp.classList.add('solved-num');
-
-		console.debug('setnum %s row: %s, column: %s', num, this.row, this.column);
     }
 
     /**
      * Заполнить ячейку возможными значениями
      */
     FillNotResolved(){
-        // if(this.isSolve === true){
-        //     return;
-        // }
         this.inp.value = this.possibleValues;
     }
 
@@ -101,141 +93,6 @@ class SudokuCell{
 }
 
 var Sudoku = (function() {
-  
-
-	function excludeNumbersFromBlocksByLine(){
-		let result = false;
-
-		for(let i = 0; i < 3; i++){
-			for(let j = 0; j < 3; j++){
-                // ячейки внутри блока
-                let cells = mainArray
-                            .slice(i * 3, (i + 1) * 3)
-                            .reduce(function(prev, curr){ return [...prev, ...curr.slice(j * 3, (j + 1) * 3)] }, [])
-                            .filter(function(cell){ return cell.IsSolve == false; });
-				
-				result = processNumbersInBlock(cells, i, j) || result;
-			}
-		}
-
-		return result;
-	}
-
-    function processNumbersInBlock(cells, blockRow, blockColumn){
-        let result = false;
-
-        for(let i = 1; i <= 9; i++){
-            // Ячейки, содержащие проверочное число
-			let currCells = cells.filter(function(cell){
-				return cell.PossibleValues.includes(i) === true;
-			});
-			// Если ячейки на одной строке\колонке, то исключем все остальные в этой строке других блоков
-			if(currCells.length < 2){ // для 1 и менее ячеек нет смысла проверки
-				continue;
-			}
-
-            const row = currCells[0].Row;
-            const column = currCells[0].Column;
-
-            const isRowLine = currCells.every(function(cell){ return cell.Row === row; });
-            const isColumnLine = currCells.every(function(cell){ return cell.Column === column; });
-
-            if(isRowLine === true){
-                console.debug('exclude %s by row %s', i, row);
-                mainArray[row]
-                    .filter(function(cell, ind){ return ind < blockColumn * 3 || ind >= (blockColumn + 1) * 3 })
-                    .forEach(function(cell){ result = cell.Exclude(i) || result; });
-            }
-
-            if(isColumnLine === true){
-                console.debug('exclude %s by column %s', i, column);
-                mainArray
-                    .filter(function(cell, ind){ return ind < blockRow * 3 || ind >= (blockRow + 1) * 3 })
-                    .forEach(function(arr){ result = arr[column].Exclude(i) || result; });
-            }
-        }
-
-        return result;
-    }
-
-    function excludeHiddenPairsTriples(cell, ln){
-        if(cell.PossibleValues.length !== ln){
-            return false;
-        }
-
-        let result = false;
-
-        //console.debug('поиск скрытых пар\троек(%s) для (%s, %s): %s', ln, cell.Row, cell.Column, cell.PossibleValues);
-
-        // Поиск в строке
-        result = excludeHiddenPairsTriplesFromCells(mainArray[cell.Row], cell, ln, function(cell){ return cell.Column; }) || result;
-
-        // Поиск в столбце
-        //excludeHiddenPairsTriplesFromColumn(cell, ln);
-        // result = excludeHiddenPairsTriplesFromCells(mainArray.map(function(arr){
-        //     return arr[cell.Column];
-        // }), cell, ln, 
-        // function(cell){ return cell.Row; }) || result;
-        // Поиск в блоке
-        
-        return result;
-    }
-
-    function excludeHiddenPairsTriplesFromCells(cells, checkCell, ln, checkFn){
-        let result = false;
-
-        const hiddenCells = cells.filter(function(val){
-            return val.IsSolve == false
-                    && val.PossibleValues.length > 1
-                    && val.PossibleValues.length <= checkCell.PossibleValues.length
-                    && val.PossibleValues.every(function(v) { return checkCell.PossibleValues.includes(v); })
-        });
-
-        if(hiddenCells.length === ln){
-            const excludeColumns = hiddenCells.map(checkFn);
-            cells
-            .filter(function(val){
-                return val.IsSolve === false && excludeColumns.includes(checkFn(val)) === false;
-            })
-            .forEach(function(val){
-                checkCell.PossibleValues.forEach(function(num){ result = val.Exclude(num) || result; });
-            });
-        }
-
-        return result;
-    }
-
-	// Исключаем все повторения
-	function excludeAllNumbers(){
-		let res = false;
-		// Исключаем для каждой ячейки
-		for(let i = 0; i < 9; i++){
-			for(let j = 0; j < 9; j++){
-				res = excludeNumbers(mainArray[i][j]) || res;
-			}
-		}
-
-		// Исключаем внутри блоков - если внутри блока все доступные двойки строятся в 1 линию, то в этой линии исключаем все двойки внутри других блоков
-		res = excludeNumbersFromBlocksByLine() || res;
-
-        // Ищем скрытые пары\тройки
-		for(let i = 0; i < 9; i++){
-			for(let j = 0; j < 9; j++){
-                if(mainArray[i][j].IsSolve === true){
-                    continue;
-                }
-
-				res = excludeHiddenPairsTriples(mainArray[i][j], 2) || res;
-                res = excludeHiddenPairsTriples(mainArray[i][j], 3) || res;
-			}
-		}
-
-		return res;
-	}
-
-    
-
-
 
     const allCells = [];
     // Решаем
@@ -259,7 +116,12 @@ var Sudoku = (function() {
             // Исключить самые простые
             res = excludeSimple() ||
             // Установить "последнего героя"(остается единственный в строке, колонке, группе)
-            setLastHeroes();
+            setLastHeroes() ||
+            // Исключить числа на одной линии
+            excludeNumbersFromBlocksByLines() ||
+            // Исключить скрытые пары\тройки
+            findHiddenPairsTriples(2) ||
+            findHiddenPairsTriples(3);
         }
 
         // Заполнить нерешенные ячейки для дальнейшего анализа
@@ -358,8 +220,136 @@ var Sudoku = (function() {
         return false;
     }
 
+    /**
+     * Найти скрытые пары\тройки
+     * @param {Number} ln 
+     */
+    function findHiddenPairsTriples(ln){
+        let res = false;
+
+        const processCells = allCells.filter(c => c.IsSolve === false);
+        const possibleCells = processCells.filter(c => c.PossibleValues.length > 1 && c.PossibleValues.length <= ln)
+        //const cells = processCells.filter(c => c.PossibleValues.length === ln);
+        return processCells
+            .filter(c => c.PossibleValues.length === ln)
+            .some(c => findHiddenPairsTriplesForCell(c, possibleCells));
+    }
+
+    /**
+     * 
+     * @param {SudokuCell} checkCell 
+     * @param {Array} possibleCells 
+     */
+    function findHiddenPairsTriplesForCell(checkCell, possibleCells){
+        let res = false;
+
+        const processCells = possibleCells
+                                .filter(c => c.PossibleValues.every(function(v) { return checkCell.PossibleValues.includes(v); }));
+
+        return findHiddenPairsTriplesForOtherCells(processCells, checkCell,
+                function(c1, c2){ return c1.Row === c2.Row}, function(c){ return c.Column; }) ||
+            findHiddenPairsTriplesForOtherCells(processCells, checkCell,
+                function(c1, c2){ return c1.Column === c2.Column}, function(c){ return c.Row; });
+    }
+
+    /**
+     * Найти скрытую пару\тройку для указанной ячейки
+     * @param {SudokuCell} processCells 
+     * @param {SudokuCell} checkCell 
+     * @param {function} checkFn 
+     * @param {function} excludeFn 
+     */
+    function findHiddenPairsTriplesForOtherCells(processCells, checkCell, checkFn, excludeFn){
+        let res = false;
+        const hiddenRowCells = processCells.filter(c => checkFn(c, checkCell));
+        // Для пары должны быть 2 ячейки в строке, столбце, блоке (для тройки, соответственно 3)
+        if(hiddenRowCells.length === checkCell.PossibleValues.length){
+            allCells
+                .filter(
+                    c => c.IsSolve === false &&
+                    checkFn(c, checkCell) === true &&
+                    hiddenRowCells.map(h => excludeFn(h)).includes(excludeFn(c)) == false
+            )
+            .forEach(function(val){
+                checkCell.PossibleValues.forEach(num => res = val.Exclude(num) || res );
+            });
+            
+            if(res === true){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Исключить числа на одной линии
+     */
+    function excludeNumbersFromBlocksByLines(){
+        const processCells = allCells.filter(c => c.IsSolve === false);
+        let res = false;
+
+        for(let i = 0; i < 3; i++){
+            for(let j = 0; j < 3; j ++){
+                let blockCells = processCells
+                                    .filter(c => c.Row >= i * 3 && c.Row < (i + 1) * 3
+                                        && c.Column >= j * 3 && c.Column < (j + 1) * 3)
+                if(blockCells.length === 0){
+                    continue;
+                }
+                
+                // Проверяем каждое число. Если оно встречается только в 1 колонке или строке
+                // то исключаем его по этой же строке\колонке в соседних блоках
+                for(let num = 1; num <= 9; num++){
+                    let lineCells = blockCells.filter(c => c.PossibleValues.includes(num));
+                    res = checkBlockLines(lineCells, num, i, j) || res;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * Проверка, в одну ли линию выставлено проверочное число в блоке
+     * @param {*} lineCells 
+     * @param {Number} num 
+     * @param {Number} blockRow 
+     * @param {Number} blockColumn 
+     */
+    function checkBlockLines(lineCells, num, blockRow, blockColumn){
+        if(lineCells.length === 0){
+            return false;
+        }
+
+        let res = false;
+
+        const row = lineCells[0].Row;
+        const column = lineCells[0].Column;
+
+        const isRowLine = lineCells.every(c => c.Row === row);
+        const isColumnLine = lineCells.every(c => c.Column === column);
+
+        if(isRowLine === true){
+            allCells
+                .filter(c => c.IsSolve === false &&
+                c.Row === row &&
+                (c.Column < blockColumn * 3 || c.Column >= (blockColumn + 1) * 3))
+                .forEach(c => res = c.Exclude(num) || res);
+        }
+
+        if(isColumnLine === true){
+            allCells
+                .filter(c => c.IsSolve === false &&
+                c.Column === column &&
+                (c.Row < blockRow * 3 || c.Row >= (blockRow + 1) * 3))
+                .forEach(c => res = c.Exclude(num) || res);
+        }
+
+        return res;
+    }
+
     return{
         Solve: solve
     }
 }());
-
