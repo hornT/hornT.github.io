@@ -1,8 +1,6 @@
 'use strict';
 
 const DlmsProtocol = (function(){
-    var index = 0;
-    var data_bytes = [];
 
     const parseFuncs = {
         1: parseArray, // Массив
@@ -35,12 +33,14 @@ const DlmsProtocol = (function(){
     // Добавляет строку лога с данными разбора
     function addLog(element, dataIndex, size, text){
 
-        const node = document.createElement('div');
-        node.classList.add('inner-log');
-        element.appendChild(node);
-        //const start = index;
-        node.innerHTML = data_bytes.slice(index, index + size + dataIndex).join('-') + " - " + text;
-        
+        // const node = document.createElement('div');
+        // node.classList.add('inner-log');
+        // element.appendChild(node);
+        // //const start = index;
+        // node.innerHTML = data_bytes.slice(index, index + size + dataIndex).join('-') + " - " + text;
+        let logText = data_bytes.slice(index, index + size + dataIndex).join('-') + " - " + text;
+        AddTextLog(logText, element);
+
         index += dataIndex + size;
     }
 
