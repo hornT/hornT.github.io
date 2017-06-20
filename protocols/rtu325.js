@@ -19,12 +19,14 @@ const Rtu325Protocol = (function(){
 
     // 
     const requestFunctions = {
-        0x0b: parseMeterParametersRequest
+        0x06: parseTimeRequest,
+        0x0b: parseMeterParametersRequest,
+        0x0f: parseInstantaneousReauest
     }
 
     // 
     const answerFunctions = {
-        7: parseTime,
+        7: parseTimeAnswer,
         38: parseMeterParametersAnswer
     }
 
@@ -46,7 +48,7 @@ const Rtu325Protocol = (function(){
             func();
         }
         else{
-            AddTextLog('Неизвестная функция');
+            AddLog(1, 'Неизвестная функция');
         }
     }
 
@@ -68,9 +70,7 @@ const Rtu325Protocol = (function(){
         }
     }
 
-    function parseTime(){
-        const node = Helper.AddTextLog('Чтение времени');
-
+    function parseTime(node){
         AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
         AddLog(1, 'Месяц: ' + parseInt(data_bytes[index], 16), node);
         AddLog(1, 'День: ' + parseInt(data_bytes[index], 16), node);
@@ -83,13 +83,25 @@ const Rtu325Protocol = (function(){
         AddLog(4, 'Заводской номер счетчика: ' + Helper.ParseInt4B(data_bytes, index), node);
     }
 
-    // 
+    function parseTimeRequest(){
+        AddLog(1, 'Запрос чтения времени');
+    }
+
+    // Ответ времени
+    function parseTimeAnswer(){
+        const node = AddTextLog('Чтение времени');
+
+        parseTime(node);
+    }
+
+    // Запрос параметров счетчика
     function parseMeterParametersRequest() {
         const node = AddLog(1, 'Запрос параметров счетчика');
 
         parseMeterSerial(node);
     }
 
+    // Ответ параметров счетчика
     function parseMeterParametersAnswer(){
         const node = AddTextLog('Памаметры счетчика');
 
@@ -108,6 +120,16 @@ const Rtu325Protocol = (function(){
         AddLog(1, 'тип счетчика: ' + parseInt(data_bytes[index], 16), node);
         // todo см. п. 4.5
         AddLog(1, 'идентификатор типа данных профилей счетчика: ' + parseInt(data_bytes[index], 16), node);
+    }
+
+    // Запрос параметров электросети
+    function parseInstantaneousReauest(){
+        const node = AddLog(1, 'Запрос параметров электросети');
+
+        parseMeterSerial(node);
+        parseTime(node);
+
+        AddLog(2, 'Количество замеров: ' + Helper.ParseInt2B(data_bytes, index), node);
     }
 
     function parseData(){
