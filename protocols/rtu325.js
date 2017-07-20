@@ -19,6 +19,7 @@ const Rtu325Protocol = (function(){
 
     // 
     const requestFunctions = {
+        0x04: parseEnergyRequest,
         0x06: parseTimeRequest,
         0x0b: parseMeterParametersRequest,
         0x0f: parseInstantaneousReauest
@@ -35,7 +36,7 @@ const Rtu325Protocol = (function(){
         let packetSize = Helper.ParseInt2B(data_bytes, index);
         AddLog(2, 'Размер пакета: ' + packetSize + '. Размер данных должен быть: ' + (packetSize - 7));
         AddLog(2, 'Id пакета');
-        AddLog(2, 'Адрес');
+        AddLog(2, 'Адрес: ' + Helper.ParseInt2B(data_bytes, index));
         AddLog(1, 'Вид сжатия');
         AddLog(1, 'Вид шифрования');
     }
@@ -70,17 +71,38 @@ const Rtu325Protocol = (function(){
         }
     }
 
-    function parseTime(node){
+    function parseDateTimeMinutes(node){
         AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
         AddLog(1, 'Месяц: ' + parseInt(data_bytes[index], 16), node);
         AddLog(1, 'День: ' + parseInt(data_bytes[index], 16), node);
         AddLog(1, 'Часы: ' + parseInt(data_bytes[index], 16), node);
         AddLog(1, 'Минуты: ' + parseInt(data_bytes[index], 16), node);
+    }
+
+    function parseDateTimeSeconds(node){
+        parseDateTimeMinutes(node);
         AddLog(1, 'Секунды: ' + parseInt(data_bytes[index], 16), node);
     }
 
     function parseMeterSerial(node){
         AddLog(4, 'Заводской номер счетчика: ' + Helper.ParseInt4B(data_bytes, index), node);
+    }
+
+    // Добавить лог с типами значений
+    function parseValueTypes(node){
+        AddLog(1, 'Типы значений: ' + Helper.ParseValueTypes(data_bytes, index), node);
+    }
+
+
+
+    // 0x04
+    function parseEnergyRequest(){
+        const node = AddLog(1, 'Запрос показаний счетчика');
+
+        parseMeterSerial(node);
+        parseValueTypes(node);
+
+        parseDateTimeMinutes(node);
     }
 
     function parseTimeRequest(){
@@ -91,7 +113,7 @@ const Rtu325Protocol = (function(){
     function parseTimeAnswer(){
         const node = AddTextLog('Чтение времени');
 
-        parseTime(node);
+        parseDateTimeMinutes(node);
     }
 
     // Запрос параметров счетчика
@@ -115,8 +137,7 @@ const Rtu325Protocol = (function(){
         AddLog(4, 'Кмнож с шильда счетчика: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(1, 'интервал профиля, мин: ' + parseInt(data_bytes[index], 16), node);
         AddLog(2, 'подинтервал профиля/мощности, сек: ' + Helper.ParseInt2B(data_bytes, index), node);
-        // todo (биты в байте №35):  | Q4 | Q3 | Q2 | Q1 | R- | R+ | A- | A+ |
-        AddLog(2, 'регистрируемые RTU типы значений с данного счетчика (профили): ', node);
+        AddLog(2, 'регистрируемые RTU типы значений с данного счетчика (профили): ' + Helper.ParseValueTypes(data_bytes, index), node);
         AddLog(1, 'тип счетчика: ' + parseInt(data_bytes[index], 16), node);
         // todo см. п. 4.5
         AddLog(1, 'идентификатор типа данных профилей счетчика: ' + parseInt(data_bytes[index], 16), node);
@@ -127,7 +148,7 @@ const Rtu325Protocol = (function(){
         const node = AddLog(1, 'Запрос параметров электросети');
 
         parseMeterSerial(node);
-        parseTime(node);
+        parseDateTimeMinutes(node);
 
         AddLog(2, 'Количество замеров: ' + Helper.ParseInt2B(data_bytes, index), node);
     }

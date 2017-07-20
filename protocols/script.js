@@ -34,22 +34,39 @@ function Parse() {
     log.appendChild(parserlog);
 }
 
-function AddTextLog(text, element) {
-
+function AddDataTextLog(dataText, text, element){
     element = element || parserlog;
 
     const node = document.createElement('div');
     node.classList.add('inner-log');
+    
+    if(dataText)
+    {
+        const dataSpan = document.createElement('span');
+        dataSpan.classList.add('data-log');
+        dataSpan.innerHTML = dataText;
+        node.appendChild(dataSpan);
+    }
+    
+    const textSpan = document.createElement('span');
+    textSpan.classList.add('text-log');
+    textSpan.innerHTML = text;
+    node.appendChild(textSpan);
+
     element.appendChild(node);
-    node.innerHTML = text;
 
     return node;
 }
 
+function AddTextLog(text, element) {
+
+    return AddDataTextLog(null, text, element);
+}
+
 // Добавляет строку лога с данными разбора
 function AddLog(size, text, element) {
-    const logText = data_bytes.slice(index, index + size).join('-') + " - " + text;
-    const node = AddTextLog(logText, element);
+    const packetText = data_bytes.slice(index, index + size).join('-') + " - ";
+    const node = AddDataTextLog(packetText, text, element);
 
     index += size;
 
