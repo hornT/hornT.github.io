@@ -12,12 +12,14 @@ const Rtu325Protocol = (function(){
 
     const errorCodes = {
         0: 'Ошибок нет',
-        1: 'Ошибка (не спрашивай какая, нет описание)',
+        1: 'Ошибка (не спрашивай какая, нет описания)',
         2: 'Нет данных',
         3: 'Соединение не установлено',
     }
 
-    // 
+    /**
+     * Сопоставление номера функции запроса с функцией разбора
+     */
     const requestFunctions = {
         0x04: parseEnergyRequest,
         0x06: parseTimeRequest,
@@ -25,7 +27,9 @@ const Rtu325Protocol = (function(){
         0x0f: parseInstantaneousReauest
     }
 
-    // 
+    /**
+     * Сопоставление длины ответа с функцией разбора
+     */
     const answerFunctions = {
         7: parseTimeAnswer,
         38: parseMeterParametersAnswer
@@ -41,12 +45,34 @@ const Rtu325Protocol = (function(){
         AddLog(1, 'Вид шифрования');
     }
 
-    // Разбор функций запроса\ответа
-    function parseFunction(funcArray, num){
-        const func = funcArray[num];
+    /**
+     * Разбор функций запроса
+     * @param {Number} num - номер функции
+     */
+    function parseRequestFunction(num){
+        const func = requestFunctions[num];
 
         if(func){
             func();
+        }
+        else{
+            AddLog(1, 'Неизвестная функция');
+        }
+    }
+
+    /**
+     * Разбор данных ответа
+     * Однозначно определить что за ответ пришел нельзя, можно понять только по длине данных
+     * @param {Number} dataSize - длина данных
+     */
+    function parseAnswerData(dataSize){
+        const func = answerFunctions[dataSize];
+
+        if(func){
+            func();
+        }
+        else if(dataSize % 8 === 0){ // Ответ на запрос показаний счетчика кратен 8ми
+            parseEnergyAnswer();
         }
         else{
             AddLog(1, 'Неизвестная функция');
@@ -67,7 +93,7 @@ const Rtu325Protocol = (function(){
             AddLog(1, text);
         }
         else{
-            parseFunction(requestFunctions, code);
+            parseRequestFunction(code);
         }
     }
 
@@ -93,9 +119,9 @@ const Rtu325Protocol = (function(){
         AddLog(1, 'Типы значений: ' + Helper.ParseValueTypes(data_bytes, index), node);
     }
 
-
-
-    // 0x04
+    /**
+     * Разбор функции запроса показаний счетчика
+     */
     function parseEnergyRequest(){
         const node = AddLog(1, 'Запрос показаний счетчика');
 
@@ -105,6 +131,19 @@ const Rtu325Protocol = (function(){
         parseDateTimeMinutes(node);
     }
 
+    /**
+     * Разбор ответа показаний счетчика
+     */
+    function parseEnergyAnswer(){
+        const node = AddTextLog('Показания счетчика');
+
+        let i = 1;
+        while(index + 8 < data_bytes.length){
+            AddLog(8, `Параметр ${i++}: ${Helper.ParseDouble(data_bytes, index)}`, node);
+        }
+    }
+
+    // Запрос времени
     function parseTimeRequest(){
         AddLog(1, 'Запрос чтения времени');
     }
@@ -128,7 +167,8 @@ const Rtu325Protocol = (function(){
         const node = AddTextLog('Памаметры счетчика');
 
         AddLog(2, 'Идентификатор счетчика: ' + Helper.ParseInt2B(data_bytes, index), node);
-        AddLog(8, 'коэф-т преобразования: ', node); // TODO parse double 8
+        //AddLog(8, 'коэф-т преобразования: ', node); // TODO parse double 8
+        AddLog(8, `коэф-т преобразования:  ${Helper.ParseDouble(data_bytes, index)}`, node);
         AddLog(4, 'I1: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(4, 'I2: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(4, 'U1: ' + Helper.ParseInt4B(data_bytes, index), node);
@@ -143,7 +183,9 @@ const Rtu325Protocol = (function(){
         AddLog(1, 'идентификатор типа данных профилей счетчика: ' + parseInt(data_bytes[index], 16), node);
     }
 
-    // Запрос параметров электросети
+    /**
+     * Разбор функции запроса параметров электросети
+     */
     function parseInstantaneousReauest(){
         const node = AddLog(1, 'Запрос параметров электросети');
 
@@ -153,12 +195,15 @@ const Rtu325Protocol = (function(){
         AddLog(2, 'Количество замеров: ' + Helper.ParseInt2B(data_bytes, index), node);
     }
 
+    /**
+     * Разбор данных
+     */
     function parseData(){
         // Тип ответа можно понять только по размеру. других признаков нет
-        let dataSize = data_bytes.length - index - CRC_SIZE;
+        const dataSize = data_bytes.length - index - CRC_SIZE;
         console.log(`Размер данных: ${dataSize}`);
 
-        parseFunction(answerFunctions, dataSize);
+        parseAnswerData(dataSize);
     }
 
     function parse(){
