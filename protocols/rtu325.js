@@ -21,6 +21,7 @@ const Rtu325Protocol = (function(){
      * Сопоставление номера функции запроса с функцией разбора
      */
     const requestFunctions = {
+        0x03: parseCommercialProfileRequest,
         0x04: parseEnergyRequest,
         0x06: parseTimeRequest,
         0x0b: parseMeterParametersRequest,
@@ -74,12 +75,17 @@ const Rtu325Protocol = (function(){
         else if(dataSize % 8 === 0){ // Ответ на запрос показаний счетчика кратен 8ми
             parseEnergyAnswer();
         }
+        else if ((dataSize - 6) % 8 === 0) { // Ответ на запрос профиля коммерческих интервалов в именованных величинах кратен 8ми + 6
+            parseCommercialProfileAnswer();
+        }
         else{
             AddLog(1, 'Неизвестная функция');
         }
     }
 
-    // Разбор непосредственно данных ответа, либо запроса
+    /**
+     * Разбор пакета
+     */
     function parsePacketData(){
 
         const code = parseInt(data_bytes[index], 16);
@@ -89,7 +95,7 @@ const Rtu325Protocol = (function(){
             AddLog(1, 'Ошибок нет');
             parseData();
         }
-        else if(text){
+        else if (text && (data_bytes.length - index === 3)){// если после кода ответа есть данные (их больше 3 crc) значит это запрос
             AddLog(1, text);
         }
         else{
@@ -120,7 +126,64 @@ const Rtu325Protocol = (function(){
     }
 
     /**
-     * Разбор функции запроса показаний счетчика
+     * Распарсить статус данных
+     * @param {any} node
+     */
+    function parseDataStatus(node) {
+        const code = parseInt(data_bytes[index], 16);
+        let status;
+
+        switch (code) {
+            case 0:
+                status = 'нормальные данные';
+                break;
+            case 1:
+                status = 'событие повлияло на профиль (коррекция времени, пропадание питания)';
+                break;
+            case 2:
+                status = 'переполнение пульсов';
+                break;
+            case 3:
+                status = 'счетчик не измерял пульсы';
+                break;
+            default:
+                status = 'Неизвестно';
+        }
+
+        AddLog(1, `Статус данных: ` + status, node);
+    }
+
+    /**
+     * Разбор функции запроса Профиль коммерческих интервалов в именованных величинах (кВт*ч/кВар*ч) (0x03)
+     */
+    function parseCommercialProfileRequest() {
+        const node = AddLog(1, 'Запрос профиля коммерческих интервалов в именованных величинах (кВт*ч/кВар*ч)');
+
+        parseMeterSerial(node);
+        parseValueTypes(node);
+        const dtNode = AddTextLog('Начало первого интервала');
+        parseDateTimeMinutes(dtNode);
+        AddLog(2, `Количество интервалов ${Helper.ParseInt2B(data_bytes, index)}`, node);
+    }
+
+    /**
+     * Разбор ответа Профиль коммерческих интервалов в именованных величинах (кВт*ч/кВар*ч) (0x03)
+     */
+    function parseCommercialProfileAnswer() {
+        const node = AddTextLog('Профиль коммерческих интервалов в именованных величинах (кВт*ч/кВар*ч)');
+
+        const dtNode = AddTextLog('Начало первого интервала', node);
+        parseDateTimeMinutes(dtNode);
+
+        let i = 1;
+        while (index + 8 < data_bytes.length) {
+            let dataNode = AddLog(8, `Значение интервала ${i++}: ${Helper.ParseDouble(data_bytes, index)}`, node);
+            parseDataStatus(dataNode);
+        }
+    }
+
+    /**
+     * Разбор функции запроса показаний счетчика (0x04)
      */
     function parseEnergyRequest(){
         const node = AddLog(1, 'Запрос показаний счетчика');
@@ -132,10 +195,10 @@ const Rtu325Protocol = (function(){
     }
 
     /**
-     * Разбор ответа показаний счетчика
+     * Разбор ответа показаний счетчика (0x04)
      */
     function parseEnergyAnswer(){
-        const node = AddTextLog('Показания счетчика');
+        const node = AddTextLog('Показания счетчика, кВт*ч/кВар*ч');
 
         let i = 1;
         while(index + 8 < data_bytes.length){
