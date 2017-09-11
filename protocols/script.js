@@ -5,7 +5,7 @@ const log = document.querySelector('#log');
 const protocolParsers = {
     'Dlms': DlmsProtocol,
     'Rtu325': Rtu325Protocol,
-    'Ecom3000': 3
+    'Ecom3000': Ecom3000Protocol
 }
 
 var index = 0;

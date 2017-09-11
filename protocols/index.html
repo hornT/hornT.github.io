@@ -7,6 +7,7 @@
         <script src="Helper.js" defer=""></script>
         <script src="dlms.js" defer=""></script>
         <script src="rtu325.js" defer=""></script>
+        <script src="Ecom3000.js" defer=""></script>
         <script src="script.js" defer=""></script>
     </head>
     <body>
@@ -14,8 +15,8 @@
             <textarea id="protocolPacket" cols="150" rows="10" placeholder="Пакет..." ></textarea>
             <div class="protocol-type">
                 <div><input name="protocol" type="radio" value="Dlms" >dlms</div>
-                <div><input name="protocol" type="radio" value="Rtu325" checked>rtu325</div>
-                <div><input name="protocol" type="radio" value="Ecom3000">ecom3000</div>
+                <div><input name="protocol" type="radio" value="Rtu325" >rtu325</div>
+                <div><input name="protocol" type="radio" value="Ecom3000" checked>ecom3000</div>
             </div>
             <button class="btn-parse" onclick="Parse();">Разбор</button>
         </div>

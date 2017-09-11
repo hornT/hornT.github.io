@@ -59,6 +59,44 @@ const Helper = (function(){
         return Math.pow(-1, sign) * mantissa * mul;
     }
 
+    /**
+     * Преобразование массива байт в float48
+     * @param {*} dataArr - массив данных
+     * @param {*} start - начало чтения
+     */
+    function parseFloat48(dataArr, start) {
+
+        const real48 = [
+            parseInt(dataArr[start + 5], 16),
+            parseInt(dataArr[start + 4], 16),
+            parseInt(dataArr[start + 3], 16),
+            parseInt(dataArr[start + 2], 16),
+            parseInt(dataArr[start + 1], 16),
+            parseInt(dataArr[start + 0], 16),
+        ];
+
+        if (real48[0] == 0)
+            return 0.0; // Null exponent = 0
+
+        const exponent = real48[0] - 129.0;
+        let mantissa = 0.0;
+
+        for (let i = 1; i < 5; i++) // loop through bytes 1-4
+        {
+            mantissa += real48[i];
+            mantissa *= 0.00390625; // mantissa /= 256
+        }
+
+        mantissa += (real48[5] & 0x7F);
+        mantissa *= 0.0078125; // mantissa /= 128
+        mantissa += 1.0;
+
+        if ((real48[5] & 0x80) == 0x80) // Sign bit check
+            mantissa = -mantissa;
+
+        return mantissa * Math.pow(2.0, exponent);
+    }
+
     // 
     function parseValueTypes(data, start) {
         let val = parseInt(data[start], 16);
@@ -88,6 +126,7 @@ const Helper = (function(){
         ParseInt2B: parseInt2B,
         ParseInt4B: parseInt4B,
         ParseDouble: parseDouble,
+        ParseFloat48: parseFloat48,
         ParseValueTypes: parseValueTypes
     }
 }());

@@ -231,7 +231,7 @@ const Rtu325Protocol = (function(){
 
         AddLog(2, 'Идентификатор счетчика: ' + Helper.ParseInt2B(data_bytes, index), node);
         //AddLog(8, 'коэф-т преобразования: ', node); // TODO parse double 8
-        AddLog(8, `коэф-т преобразования:  ${Helper.ParseDouble(data_bytes, index)}`, node);
+        AddLog(8, `коэф-т преобразования:  ${Helper.ParseDouble(data_bytes, index)}, КВт*час/импульс`, node);
         AddLog(4, 'I1: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(4, 'I2: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(4, 'U1: ' + Helper.ParseInt4B(data_bytes, index), node);
