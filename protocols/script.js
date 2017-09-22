@@ -34,6 +34,15 @@ function Parse() {
     log.appendChild(parserlog);
 }
 
+/**
+ * Очистить трафик от мусора
+ */
+function Clean() {
+    const reg = /[A-F0-9][A-F0-9]_/g;
+    const area = document.querySelector('#protocolPacket');
+    area.value = area.value.match(reg).join('');
+}
+
 function AddDataTextLog(dataText, text, element){
     element = element || parserlog;
 

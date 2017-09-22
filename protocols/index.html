@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -18,7 +18,10 @@
                 <div><input name="protocol" type="radio" value="Rtu325" >rtu325</div>
                 <div><input name="protocol" type="radio" value="Ecom3000" checked>ecom3000</div>
             </div>
-            <button class="btn-parse" onclick="Parse();">Разбор</button>
+            <div>
+                <button class="btn-parse" onclick="Parse();">Разбор</button>
+                <button class="btn-parse" onclick="Clean();">Очистить</button>
+            </div>
         </div>
         <div id="log"></div>
     </body>
