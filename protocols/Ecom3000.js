@@ -8,7 +8,9 @@ const Ecom3000Protocol = (function(){
      * Сопоставление номера функции запроса с функцией разбора
      */
     const requestFunctions = {
+        0x4E: parseOpenSession,  //78
         0x60: parseVersion,  //96
+        0x73: parseCurrentEnergy,  //115
         0x7F: parseArchive,  //127
     }
 
@@ -96,6 +98,14 @@ const Ecom3000Protocol = (function(){
     }
 
     /**
+     * 78(0x4E)Открытие сессии
+     * @param {number} dataSize
+     */
+    function parseOpenSession(dataSize) {
+        AddLog(1, 'Открытие сессии');
+    }
+
+    /**
      * 96(0x60). Версия ПО
      * @param {number} dataSize 
      */
@@ -113,11 +123,35 @@ const Ecom3000Protocol = (function(){
     }
 
     /**
+     * 115(0x73). Текущие показания
+     * @param {number} dataSize 
+     */
+    function parseCurrentEnergy(dataSize) {
+        AddLog(1, 'Чтение привязанных к границе интервала накопительных итогов (Текущие показания)');
+
+        AddLog(1, 'Тип: ' + parseInt(data_bytes[index], 16));
+        AddLog(1, 'Начальный канал: ' + parseInt(data_bytes[index], 16));
+        AddLog(1, 'Последний канал: ' + parseInt(data_bytes[index], 16));
+        AddLog(1, 'Интервал: (0 - короткий, 1 - основной, 2 - сутки, 3 - месяц, 4 - год)' + parseInt(data_bytes[index], 16));
+
+
+        if (dataSize === 5)
+            return;
+
+        let i = 1;
+        while (index + 16 < data_bytes.length) {
+            const dtNode = AddTextLog(`Канал ${i++}`);
+            parseDateTimeT3(dtNode);
+            AddLog(6, `Значение интервала: ${Helper.ParseFloat48(data_bytes, index)}`, dtNode);
+        }
+    }
+
+    /**
      * 127(0x7F). Архивные значения по нескольким каналам за несколько интервалов времени
      * @param {number} dataSize
      */
     function parseArchive(dataSize) {
-        AddLog(1, 'Архивные значения по нескольким каналам за несколько интервалов времени');
+        AddLog(1, 'Архивные значения по нескольким каналам за несколько интервалов времени (фиксированные показания)');
 
         AddLog(1, 'Тип: ' + parseInt(data_bytes[index], 16));
         AddLog(1, 'Начальный канал: ' + parseInt(data_bytes[index], 16));
