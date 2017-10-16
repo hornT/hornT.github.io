@@ -67,12 +67,12 @@ const Helper = (function(){
     function parseFloat48(dataArr, start) {
 
         const real48 = [
-            parseInt(dataArr[start + 5], 16),
-            parseInt(dataArr[start + 4], 16),
-            parseInt(dataArr[start + 3], 16),
-            parseInt(dataArr[start + 2], 16),
-            parseInt(dataArr[start + 1], 16),
             parseInt(dataArr[start + 0], 16),
+            parseInt(dataArr[start + 1], 16),
+            parseInt(dataArr[start + 2], 16),
+            parseInt(dataArr[start + 3], 16),
+            parseInt(dataArr[start + 4], 16),
+            parseInt(dataArr[start + 5], 16),
         ];
 
         if (real48[0] == 0)
