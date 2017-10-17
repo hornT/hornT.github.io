@@ -5,6 +5,15 @@ const Helper = (function(){
      * @param {array} data - массив данных
      * @param {number} start - начало чтения
      */
+    function parseInt1B(data, start) {
+        return parseInt(data[start], 16);
+    }
+
+    /**
+     * Преобразование массива байт в целое
+     * @param {array} data - массив данных
+     * @param {number} start - начало чтения
+     */
     function parseInt2B(data, start){
         return parseInt(data[start + 1] + data[start], 16);
     }
@@ -20,21 +29,28 @@ const Helper = (function(){
 
     /**
      * Преобразование массива байт в double
-     * @param {*} dataArr - массив данных
-     * @param {*} start - начало чтения
+     * @param {Array} dataArr - массив данных
+     * @param {number} start - начало чтения
+     * @param {boolean} invert - инвертировать порядок байт
      */
-    function parseDouble(dataArr, start){
+    function parseDouble(dataArr, start, invert = false) {
+
+        let data = dataArr.slice(start, start + 8).map((num, ind) => parseInt(num, 16));
+        if (invert === true) {
+            data.reverse();
+        }
+
         // https://stackoverflow.com/questions/8361086/convert-byte-array-to-numbers-in-javascript
-        const data = [
-            parseInt(dataArr[start + 7], 16),
-            parseInt(dataArr[start + 6], 16),
-            parseInt(dataArr[start + 5], 16),
-            parseInt(dataArr[start + 4], 16),
-            parseInt(dataArr[start + 3], 16),
-            parseInt(dataArr[start + 2], 16),
-            parseInt(dataArr[start + 1], 16),
-            parseInt(dataArr[start + 0], 16),
-        ];
+        //const data = [
+        //    parseInt(dataArr[start + 7], 16),
+        //    parseInt(dataArr[start + 6], 16),
+        //    parseInt(dataArr[start + 5], 16),
+        //    parseInt(dataArr[start + 4], 16),
+        //    parseInt(dataArr[start + 3], 16),
+        //    parseInt(dataArr[start + 2], 16),
+        //    parseInt(dataArr[start + 1], 16),
+        //    parseInt(dataArr[start + 0], 16),
+        //];
 
         const sign = (data[0] & 1 <<7 ) >> 7;
         const exponent = (((data[0] & 127) << 4) | (data[1] & ( 15 <<4 )) >>4);
@@ -61,19 +77,24 @@ const Helper = (function(){
 
     /**
      * Преобразование массива байт в float48
-     * @param {*} dataArr - массив данных
-     * @param {*} start - начало чтения
+     * @param {Array} dataArr - массив данных
+     * @param {number} start - начало чтения
+     * @param {boolean} invert - инвертировать порядок байт
      */
-    function parseFloat48(dataArr, start) {
+    function parseFloat48(dataArr, start, invert = false) {
 
-        const real48 = [
-            parseInt(dataArr[start + 0], 16),
-            parseInt(dataArr[start + 1], 16),
-            parseInt(dataArr[start + 2], 16),
-            parseInt(dataArr[start + 3], 16),
-            parseInt(dataArr[start + 4], 16),
-            parseInt(dataArr[start + 5], 16),
-        ];
+        let real48 = dataArr.slice(start, start + 6).map((num, ind) => parseInt(num, 16));
+        if (invert === true) {
+            real48.reverse();
+        }
+        //const real48 = [
+        //    parseInt(dataArr[start + 0], 16),
+        //    parseInt(dataArr[start + 1], 16),
+        //    parseInt(dataArr[start + 2], 16),
+        //    parseInt(dataArr[start + 3], 16),
+        //    parseInt(dataArr[start + 4], 16),
+        //    parseInt(dataArr[start + 5], 16),
+        //];
 
         if (real48[0] == 0)
             return 0.0; // Null exponent = 0
@@ -123,6 +144,7 @@ const Helper = (function(){
     }
 
     return{
+        ParseInt: parseInt1B,
         ParseInt2B: parseInt2B,
         ParseInt4B: parseInt4B,
         ParseDouble: parseDouble,

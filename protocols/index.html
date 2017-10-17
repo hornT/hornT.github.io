@@ -4,25 +4,29 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Разбор ответов по различным протоколам</title>
         <link href="style.css" rel="stylesheet">
-        <script src="Helper.js" defer=""></script>
-        <script src="dlms.js" defer=""></script>
-        <script src="rtu325.js" defer=""></script>
-        <script src="Ecom3000.js" defer=""></script>
-        <script src="script.js" defer=""></script>
+        
     </head>
     <body>
         <div class="main">
-            <textarea id="protocolPacket" cols="150" rows="10" placeholder="Пакет..." ></textarea>
-            <div class="protocol-type">
+            <div class="area">
+                <textarea id="protocolPacket" class="protocol-input" placeholder="Пакет..."></textarea>
+            </div>
+            <div class="protocol-type horizontal-center">
                 <div><input name="protocol" type="radio" value="Dlms" >dlms</div>
                 <div><input name="protocol" type="radio" value="Rtu325" >rtu325</div>
                 <div><input name="protocol" type="radio" value="Ecom3000" checked>ecom3000</div>
             </div>
-            <div>
+            <div class="horizontal-center">
                 <button class="btn-parse" onclick="Parse();">Разбор</button>
                 <button class="btn-parse" onclick="Clean();">Очистить</button>
             </div>
         </div>
         <div id="log"></div>
+
+        <script src="Helper.js" async></script>
+        <script src="dlms.js" async></script>
+        <script src="rtu325.js" async></script>
+        <script src="Ecom3000.js" async></script>
+        <script src="script.js" async></script>
     </body>
 </html>

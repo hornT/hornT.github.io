@@ -177,7 +177,7 @@ const Rtu325Protocol = (function(){
 
         let i = 1;
         while (index + 8 < data_bytes.length) {
-            let dataNode = AddLog(8, `Значение интервала ${i++}: ${Helper.ParseDouble(data_bytes, index)}`, node);
+            let dataNode = AddLog(8, `Значение интервала ${i++}: ${Helper.ParseDouble(data_bytes, index, true)}`, node);
             parseDataStatus(dataNode);
         }
     }
@@ -202,7 +202,7 @@ const Rtu325Protocol = (function(){
 
         let i = 1;
         while(index + 8 < data_bytes.length){
-            AddLog(8, `Параметр ${i++}: ${Helper.ParseDouble(data_bytes, index)}`, node);
+            AddLog(8, `Параметр ${i++}: ${Helper.ParseDouble(data_bytes, index, true)}`, node);
         }
     }
 
@@ -231,7 +231,7 @@ const Rtu325Protocol = (function(){
 
         AddLog(2, 'Идентификатор счетчика: ' + Helper.ParseInt2B(data_bytes, index), node);
         //AddLog(8, 'коэф-т преобразования: ', node); // TODO parse double 8
-        AddLog(8, `коэф-т преобразования:  ${Helper.ParseDouble(data_bytes, index)}, КВт*час/импульс`, node);
+        AddLog(8, `коэф-т преобразования:  ${Helper.ParseDouble(data_bytes, index, true)}, КВт*час/импульс`, node);
         AddLog(4, 'I1: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(4, 'I2: ' + Helper.ParseInt4B(data_bytes, index), node);
         AddLog(4, 'U1: ' + Helper.ParseInt4B(data_bytes, index), node);

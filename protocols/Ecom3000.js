@@ -8,27 +8,44 @@ const Ecom3000Protocol = (function(){
      * Сопоставление номера функции запроса с функцией разбора
      */
     const requestFunctions = {
-        0x4E: parseOpenSession,  //78
-        0x60: parseVersion,  //96
-        0x73: parseCurrentEnergy,  //115
-        0x7F: parseArchive,  //127
+        0x47: parseFixedEnergy,  //71 Зафиксированные показания
+        0x4E: parseOpenSession,  //78 Открытие сессии
+        0x60: parseVersion,     //96 Версия ПО
+        0x73: parseCurrentEnergy,  //115 Текущие показания
+        0x7F: parseArchive,  //127 Профиль
     }
 
     /**
-     * Время без миллисекунд
+     * Короткое время
+     * @param {any} node
+     */
+    function parseShortDateTime(node) {
+        //AddLog(1, 'Секунды: ' + Helper.ParseInt(data_bytes, index), node);
+        //AddLog(1, 'Минуты: ' + Helper.ParseInt(data_bytes, index), node);
+        //AddLog(1, 'Часы: ' + Helper.ParseInt(data_bytes, index), node);
+        
+        
+        AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
+        AddLog(1, 'Месяц: ' + Helper.ParseInt(data_bytes, index), node);
+        AddLog(1, 'День: ' + Helper.ParseInt(data_bytes, index), node);
+        AddLog(1, 'ХЗ чо: ' + Helper.ParseInt(data_bytes, index), node);
+    }
+
+    /**
+     * Время без миллисекунд (7 байт)
      * @param {any} node
      */
     function parseDateTimeT1(node){
-        AddLog(1, 'Секунды: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'Минуты: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'Часы: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'День: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'Месяц: ' + parseInt(data_bytes[index], 16), node);
+        AddLog(1, 'Секунды: ' + Helper.ParseInt(data_bytes, index), node);
+        AddLog(1, 'Минуты: ' + Helper.ParseInt(data_bytes, index), node);
+        AddLog(1, 'Часы: ' + Helper.ParseInt(data_bytes, index), node);
+        AddLog(1, 'День: ' + Helper.ParseInt(data_bytes, index), node);
+        AddLog(1, 'Месяц: ' + Helper.ParseInt(data_bytes, index), node);
         AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
     }
 
     /**
-     * Время без сезона
+     * Время без сезона (9 байт)
      * @param {any} node
      */
     function parseDateTimeT2(node) {
@@ -37,7 +54,7 @@ const Ecom3000Protocol = (function(){
     }
 
     /**
-     * Полное время
+     * Полное время (10 байт)
      * @param {any} node
      */
     function parseDateTimeT3(node) {
@@ -98,6 +115,36 @@ const Ecom3000Protocol = (function(){
     }
 
     /**
+     * 71(0x47) Зафиксированные показания
+     * @param {number} dataSize
+     */
+    function parseFixedEnergy(dataSize) {
+        AddLog(1, 'Зафиксированные показания (71)');
+
+        AddLog(1, 'Тип: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Начальный канал: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Последний канал: ' + Helper.ParseInt(data_bytes, index));
+
+        const dtNode = AddTextLog('Время:');
+        parseShortDateTime(dtNode);
+
+        if (dataSize === 12)
+            return;
+
+        AddLog(3, 'ХЗ чо: ');
+        let i = 1;
+        while (index + 18 < data_bytes.length) {
+            const node = AddTextLog(`Тариф ${i++}`);
+            //AddLog(6, `Значение интервала: ${Helper.ParseFloat48(data_bytes, index)}`, dtNode);
+            //AddLog(5, `ХЗ чо:`, dtNode);
+            parseDateTimeT3(node);
+            parseDataStatus1(node);
+            parseDataStatus2(node);
+            AddLog(6, `Значение интервала: ${Helper.ParseFloat48(data_bytes, index)}`, node);
+        }
+    }
+
+    /**
      * 78(0x4E)Открытие сессии
      * @param {number} dataSize
      */
@@ -129,11 +176,10 @@ const Ecom3000Protocol = (function(){
     function parseCurrentEnergy(dataSize) {
         AddLog(1, 'Чтение привязанных к границе интервала накопительных итогов (Текущие показания)');
 
-        AddLog(1, 'Тип: ' + parseInt(data_bytes[index], 16));
-        AddLog(1, 'Начальный канал: ' + parseInt(data_bytes[index], 16));
-        AddLog(1, 'Последний канал: ' + parseInt(data_bytes[index], 16));
-        AddLog(1, 'Интервал: (0 - короткий, 1 - основной, 2 - сутки, 3 - месяц, 4 - год)' + parseInt(data_bytes[index], 16));
-
+        AddLog(1, 'Тип: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Начальный канал: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Последний канал: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Интервал: (0 - короткий, 1 - основной, 2 - сутки, 3 - месяц, 4 - год)' + Helper.ParseInt(data_bytes, index));
 
         if (dataSize === 5)
             return;
@@ -153,15 +199,15 @@ const Ecom3000Protocol = (function(){
     function parseArchive(dataSize) {
         AddLog(1, 'Архивные значения по нескольким каналам за несколько интервалов времени (фиксированные показания)');
 
-        AddLog(1, 'Тип: ' + parseInt(data_bytes[index], 16));
-        AddLog(1, 'Начальный канал: ' + parseInt(data_bytes[index], 16));
-        AddLog(1, 'Последний канал: ' + parseInt(data_bytes[index], 16));
+        AddLog(1, 'Тип: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Начальный канал: ' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Последний канал: ' + Helper.ParseInt(data_bytes, index));
 
-        const dtNode = AddTextLog('Время');
+        const dtNode = AddTextLog('Время:');
         parseDateTimeT3(dtNode);
 
-        AddLog(1, 'Интервал: (0 - короткий, 1 - основной, 2 - сутки, 3 - месяц, 4 - год)' + parseInt(data_bytes[index], 16));
-        AddLog(1, 'Количество интервалов: ' + parseInt(data_bytes[index], 16));
+        AddLog(1, 'Интервал: (0 - короткий, 1 - основной, 2 - сутки, 3 - месяц, 4 - год)' + Helper.ParseInt(data_bytes, index));
+        AddLog(1, 'Количество интервалов: ' + Helper.ParseInt(data_bytes, index));
 
         if (dataSize === 16)
             return;
