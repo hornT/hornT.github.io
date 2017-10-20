@@ -19,11 +19,7 @@ const Ecom3000Protocol = (function(){
      * Короткое время
      * @param {any} node
      */
-    function parseShortDateTime(node) {
-        //AddLog(1, 'Секунды: ' + Helper.ParseInt(data_bytes, index), node);
-        //AddLog(1, 'Минуты: ' + Helper.ParseInt(data_bytes, index), node);
-        //AddLog(1, 'Часы: ' + Helper.ParseInt(data_bytes, index), node);
-        
+    function parseShortDateTime(node) {      
         
         AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
         AddLog(1, 'Месяц: ' + Helper.ParseInt(data_bytes, index), node);
@@ -128,15 +124,13 @@ const Ecom3000Protocol = (function(){
         const dtNode = AddTextLog('Время:');
         parseShortDateTime(dtNode);
 
-        if (dataSize === 12)
+        if (dataSize === 9)
             return;
 
         AddLog(3, 'ХЗ чо: ');
         let i = 1;
         while (index + 18 < data_bytes.length) {
             const node = AddTextLog(`Тариф ${i++}`);
-            //AddLog(6, `Значение интервала: ${Helper.ParseFloat48(data_bytes, index)}`, dtNode);
-            //AddLog(5, `ХЗ чо:`, dtNode);
             parseDateTimeT3(node);
             parseDataStatus1(node);
             parseDataStatus2(node);
