@@ -24,7 +24,7 @@ const Ecom3000Protocol = (function(){
         AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
         AddLog(1, 'Месяц: ' + Helper.ParseInt(data_bytes, index), node);
         AddLog(1, 'День: ' + Helper.ParseInt(data_bytes, index), node);
-        AddLog(1, 'ХЗ чо: ' + Helper.ParseInt(data_bytes, index), node);
+        //AddLog(1, 'ХЗ чо: ' + Helper.ParseInt(data_bytes, index), node);
     }
 
     /**
@@ -124,10 +124,21 @@ const Ecom3000Protocol = (function(){
         const dtNode = AddTextLog('Время:');
         parseShortDateTime(dtNode);
 
+        // TODO
+        // биты
+        // 0 - показаний на начало суток
+        // 1 - показаний на конец суток
+        // 2 - суммы за сутки
+        // 3 - текущие показания
+        AddLog(1, 'Флаги: ' + Helper.ParseInt(data_bytes, index));
+
         if (dataSize === 9)
             return;
 
-        AddLog(3, 'ХЗ чо: ');
+        AddLog(2, 'K, сумма длин блоков данных по каналам в байтах: ' + Helper.ParseInt2B(data_bytes, index));
+        AddLog(1, 'Блок данных: ' + Helper.ParseInt(data_bytes, index));
+        //AddLog(3, 'ХЗ чо: ');
+
         let i = 1;
         while (index + 18 < data_bytes.length) {
             const node = AddTextLog(`Тариф ${i++}`);
