@@ -72,11 +72,11 @@ const Rtu325Protocol = (function(){
         if(func){
             func();
         }
+        else if ((dataSize - 6) % 9 === 0) { // Ответ на запрос профиля коммерческих интервалов в именованных величинах кратен 9ми + 6
+            parseCommercialProfileAnswer();
+        }
         else if(dataSize % 8 === 0){ // Ответ на запрос показаний счетчика кратен 8ми
             parseEnergyAnswer();
-        }
-        else if ((dataSize - 6) % 8 === 0) { // Ответ на запрос профиля коммерческих интервалов в именованных величинах кратен 8ми + 6
-            parseCommercialProfileAnswer();
         }
         else{
             AddLog(1, 'Неизвестная функция');
@@ -177,7 +177,7 @@ const Rtu325Protocol = (function(){
 
         let i = 1;
         while (index + 8 < data_bytes.length) {
-            let dataNode = AddLog(8, `Значение интервала ${i++}: ${Helper.ParseDouble(data_bytes, index, true)}`, node);
+            let dataNode = AddLog(8, `Интервал ${i++}: ${Helper.ParseDouble(data_bytes, index, true)}`, node);
             parseDataStatus(dataNode);
         }
     }
