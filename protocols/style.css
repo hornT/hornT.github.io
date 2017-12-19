@@ -1,9 +1,16 @@
+html, body{
+    height: 100%;
+}
 body{
     font-size: 18px;
+    margin: 0;
 }
 .main{
     display: flex;
     flex-direction: column;
+    height: 100%;
+    padding: 8px;
+    box-sizing: border-box;
 }
 .area{
     padding: 20px;
@@ -26,6 +33,12 @@ body{
 }
 .protocol-type input{
     height: 1em;
+}
+.main-log{
+    position: absolute;
+    overflow-y: scroll;
+    height: 100%;
+    width: 100%;
 }
 .inner-log{
     padding-left: 3em;

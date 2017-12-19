@@ -136,8 +136,7 @@ const Ecom3000Protocol = (function(){
             return;
 
         AddLog(2, 'K, сумма длин блоков данных по каналам в байтах: ' + Helper.ParseInt2B(data_bytes, index));
-        AddLog(1, 'Блок данных: ' + Helper.ParseInt(data_bytes, index));
-        //AddLog(3, 'ХЗ чо: ');
+        AddLog(1, `Блок данных: ${Helper.ParseInt(data_bytes, index)}. (0 - данные не готовы. 255 - канал не описан)`);
 
         let i = 1;
         while (index + 18 < data_bytes.length) {
