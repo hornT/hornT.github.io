@@ -253,7 +253,7 @@ const Rtu325Protocol = (function(){
         const node = AddLog(1, 'Запрос параметров электросети');
 
         parseMeterSerial(node);
-        parseDateTimeMinutes(node);
+        parseDateTimeSeconds(node);
 
         AddLog(2, 'Количество замеров: ' + Helper.ParseInt2B(data_bytes, index), node);
     }
