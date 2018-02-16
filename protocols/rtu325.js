@@ -78,6 +78,9 @@ const Rtu325Protocol = (function(){
         else if(dataSize % 8 === 0){ // Ответ на запрос показаний счетчика кратен 8ми
             parseEnergyAnswer();
         }
+        else if ((dataSize - 2 - 13) % 8 === 0) { // Ответ на запрос мгновенок 2x(13 + 8y). число замеров (x) предполагаем = 1
+            parseInstantaneousAnswer();
+        }
         else{
             AddLog(1, 'Неизвестная функция');
         }
@@ -103,24 +106,51 @@ const Rtu325Protocol = (function(){
         }
     }
 
-    function parseDateTimeMinutes(node){
-        AddLog(2, 'Год: ' + Helper.ParseInt2B(data_bytes, index), node);
-        AddLog(1, 'Месяц: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'День: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'Часы: ' + parseInt(data_bytes[index], 16), node);
-        AddLog(1, 'Минуты: ' + parseInt(data_bytes[index], 16), node);
+    /**
+     * Получить дату
+     */
+    function getDate() {
+
+        return {
+            year: Helper.ParseInt2B(data_bytes, index),
+            month: Helper.ParseInt(data_bytes, index + 2),
+            day: Helper.ParseInt(data_bytes, index + 3),
+            hour: Helper.ParseInt(data_bytes, index + 4),
+            minutes: Helper.ParseInt(data_bytes, index + 5),
+            seconds: Helper.ParseInt(data_bytes, index + 6)
+        }
     }
 
+    /**
+     * Распарсить дату без секунд
+     * @param {any} node
+     */
+    function parseDateTimeMinutes(node) {
+
+        const { year, month, day, hour, minutes } = getDate();
+
+        AddLog(6, `${year}.${month}.${day} ${hour}:${minutes}`, node);
+    }
+
+    /**
+     * Распарсить дату с секундами
+     * @param {any} node
+     */
     function parseDateTimeSeconds(node){
-        parseDateTimeMinutes(node);
-        AddLog(1, 'Секунды: ' + parseInt(data_bytes[index], 16), node);
+        
+        const { year, month, day, hour, minutes, seconds } = getDate();
+
+        AddLog(6, `${year}.${month}.${day} ${hour}:${minutes}:${seconds}`, node);
     }
 
     function parseMeterSerial(node){
         AddLog(4, 'Заводской номер счетчика: ' + Helper.ParseInt4B(data_bytes, index), node);
     }
 
-    // Добавить лог с типами значений
+    /**
+     * Добавить лог с типами значений
+     * @param {any} node
+     */
     function parseValueTypes(node){
         AddLog(1, 'Типы значений: ' + Helper.ParseValueTypes(data_bytes, index), node);
     }
@@ -247,7 +277,7 @@ const Rtu325Protocol = (function(){
     }
 
     /**
-     * Разбор функции запроса параметров электросети
+     * Разбор функции запроса параметров электросети (мгновенки)
      */
     function parseInstantaneousReauest(){
         const node = AddLog(1, 'Запрос параметров электросети');
@@ -256,6 +286,26 @@ const Rtu325Protocol = (function(){
         parseDateTimeSeconds(node);
 
         AddLog(2, 'Количество замеров: ' + Helper.ParseInt2B(data_bytes, index), node);
+    }
+
+    /**
+     * Разбор ответа параметров электросети (мгновенки)
+     */
+    function parseInstantaneousAnswer() {
+        const node = AddTextLog('Мгновенные величины');
+
+        const count = Helper.ParseInt2B(data_bytes, index);
+        const node2 = AddLog(2, `Количество замеров: ${count}`, node);
+        for (let i = 0; i < count; i++) {
+            parseDateTimeSeconds(node2);
+            AddLog(4, 'типы значений (битовая маска)', node2);
+
+            let measures = Helper.ParseInt4B(data_bytes, index);
+            const node3 = AddLog(2, `Количество измерений: ${measures}`, node2);
+            for (let j = 0; j < measures; j++) {
+                AddLog(8, `значение одного параметра по фазам А/В/С/общий ${Helper.ParseDouble(data_bytes, index, true)}`, node3);
+            }
+        }
     }
 
     /**
