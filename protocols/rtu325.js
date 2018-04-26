@@ -33,7 +33,8 @@ const Rtu325Protocol = (function(){
      */
     const answerFunctions = {
         7: parseTimeAnswer,
-        38: parseMeterParametersAnswer
+        37: parseMeterParametersAnswer37,
+        38: parseMeterParametersAnswer38
     }
 
     function parseHead(){
@@ -255,8 +256,10 @@ const Rtu325Protocol = (function(){
         parseMeterSerial(node);
     }
 
-    // Ответ параметров счетчика
-    function parseMeterParametersAnswer(){
+    /**
+     * Ответ параметров счетчика. Новая версия протокола для 37 байт
+     */
+    function parseMeterParametersAnswer37(){
         const node = AddTextLog('Памаметры счетчика');
 
         AddLog(2, 'Идентификатор счетчика: ' + Helper.ParseInt2B(data_bytes, index), node);
@@ -271,10 +274,22 @@ const Rtu325Protocol = (function(){
         AddLog(1, 'интервал профиля, мин: ' + parseInt(data_bytes[index], 16), node);
         AddLog(2, 'подинтервал профиля/мощности, сек: ' + Helper.ParseInt2B(data_bytes, index), node);
         AddLog(2, 'регистрируемые RTU типы значений с данного счетчика (профили): ' + Helper.ParseValueTypes(data_bytes, index), node);
-        AddLog(1, 'тип счетчика: ' + parseInt(data_bytes[index], 16), node);
+        AddLog(1, 'тип счетчика: ' + parseInt(data_bytes[index], 16), node);      
+
+        return node;
+    }
+
+    /**
+     * Ответ параметров счетчика. Старая версия протокола для 38 байт
+     */
+    function parseMeterParametersAnswer38(){
+
+        const node = parseMeterParametersAnswer37();
+
         // todo см. п. 4.5
         AddLog(1, 'идентификатор типа данных профилей счетчика: ' + parseInt(data_bytes[index], 16), node);
     }
+
 
     /**
      * Разбор функции запроса параметров электросети (мгновенки)
