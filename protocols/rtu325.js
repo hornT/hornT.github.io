@@ -274,7 +274,7 @@ const Rtu325Protocol = (function(){
         AddLog(1, 'интервал профиля, мин: ' + parseInt(data_bytes[index], 16), node);
         AddLog(2, 'подинтервал профиля/мощности, сек: ' + Helper.ParseInt2B(data_bytes, index), node);
         AddLog(2, 'регистрируемые RTU типы значений с данного счетчика (профили): ' + Helper.ParseValueTypes(data_bytes, index), node);
-        AddLog(1, 'тип счетчика: ' + parseInt(data_bytes[index], 16), node);      
+        AddLog(1, 'Тип счетчика: ' + parseInt(data_bytes[index], 16), node);      
 
         return node;
     }
